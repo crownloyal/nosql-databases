@@ -6,20 +6,20 @@ echo "removing data files"
 rm -rf ./data
 
 # For mac make sure rlimits are high enough to open all necessary connections
-ulimit -n 2048
+# ulimit -n 2048
 
 # start a replica set and tell it that it will be shard0
-mkdir -p ./data/cork/shard0/rs0 ./data/cork/shard0/rs1 ./data/cork/shard0/rs2
-mongod --replSet s0 --logpath "./data/cork/logs/s0-r0.log" --dbpath ./data/cork/shard0/rs0 --port 45001 --shardsvr --smallfiles
-mongod --replSet s0 --logpath "./data/cork/logs/s0-r1.log" --dbpath ./data/cork/shard0/rs1 --port 45002 --shardsvr --smallfiles
-mongod --replSet s0 --logpath "./data/cork/logs/s0-r2.log" --dbpath ./data/cork/shard0/rs2 --port 45003 --shardsvr --smallfiles
+mkdir -p ./data/cork/shard0/rs0 ./data/cork/shard0/rs1 ./data/cork/shard0/rs2 ./data/cork/logs/
+mongod --replSet s0 --logpath "./data/cork/logs/s0-r0.log" --dbpath ./data/cork/shard0/rs0 --port 45001 --shardsvr --smallfiles &&
+mongod --replSet s0 --logpath "./data/cork/logs/s0-r1.log" --dbpath ./data/cork/shard0/rs1 --port 45002 --shardsvr --smallfiles &&
+mongod --replSet s0 --logpath "./data/cork/logs/s0-r2.log" --dbpath ./data/cork/shard0/rs2 --port 45003 --shardsvr --smallfiles &&
 
 sleep 5
 # connect to one server and initiate the set
 mongo --port 45001 --eval 'config = { _id: "s0", members:[{ _id : 0, host : "localhost:45001" },{ _id : 1, host : "localhost:45002" },{ _id : 2, host : "localhost:45003" }]};rs.initiate(config)'
 
 # start a replicate set and tell it that it will be a shard1
-mkdir -p ./data/dublin/shard0/rs0 ./data/dublin/shard0/rs1 ./data/dublin/shard1/rs2
+mkdir -p ./data/dublin/shard1/rs0 ./data/dublin/shard1/rs1 ./data/dublin/shard1/rs2 ./data/dublin/logs/
 mongod --replSet s1 --logpath "./data/dublin/logs/s1-r0.log" --dbpath ./data/dublin/shard1/rs0 --port 46001 --shardsvr --smallfiles
 mongod --replSet s1 --logpath "./data/dublin/logs/s1-r1.log" --dbpath ./data/dublin/shard1/rs1 --port 46002 --shardsvr --smallfiles
 mongod --replSet s1 --logpath "./data/dublin/logs/s1-r2.log" --dbpath ./data/dublin/shard1/rs2 --port 46003 --shardsvr --smallfiles
@@ -28,7 +28,7 @@ sleep 5
 mongo --port 46001 --eval 'config = { _id: "s1", members:[{ _id : 0, host : "localhost:46001" },{ _id : 1, host : "localhost:46002" },{ _id : 2, host : "localhost:46003" }]};rs.initiate(config)'
 
 # start a replicate set and tell it that it will be a shard2
-mkdir -p ./data/newyork/shard2/rs0 ./data/newyork/shard2/rs1 ./data/newyork/shard2/rs2
+mkdir -p ./data/newyork/shard2/rs0 ./data/newyork/shard2/rs1 ./data/newyork/shard2/rs2 ./data/newyork/logs/
 mongod --replSet s2 --logpath "./data/newyork/logs/s2-r0.log" --dbpath ./data/newyork/shard2/rs0 --port 47001 --shardsvr --smallfiles
 mongod --replSet s2 --logpath "./data/newyork/logs/s2-r1.log" --dbpath ./data/newyork/shard2/rs1 --port 47002 --shardsvr --smallfiles
 mongod --replSet s2 --logpath "./data/newyork/logs/s2-r2.log" --dbpath ./data/newyork/shard2/rs2 --port 47003 --shardsvr --smallfiles
@@ -47,7 +47,7 @@ mongod --logpath "./data/config/logs/cfg-c.log" --dbpath ./data/config/config-c 
 # now start the mongos on port 27018
 rm mongos-1.log
 sleep 5
-mongos --port 59001 --logpath "mongos-1.log" --configdb localhost:55001,localhost:55002,localhost:55003
+mongos --port 59001 --logpath "./data/mongos-1.log" --configdb configServers/localhost:55001,localhost:55002,localhost:55003 
 echo "Waiting 60 seconds for the replica sets to fully come online"
 sleep 60
 echo "Connnecting to mongos and enabling sharding"
