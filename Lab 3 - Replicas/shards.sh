@@ -3,10 +3,10 @@ echo "killing mongod and mongos"
 killall mongod
 killall mongos
 echo "removing data files"
-rm -rf ./data
+rm -rf ./data/
 
 # For mac make sure rlimits are high enough to open all necessary connections
-# ulimit -n 2048
+ulimit -n 2048
 
 # start a replica set and tell it that it will be shard0
 mkdir -p ./data/cork/shard0/rs0 ./data/cork/shard0/rs1 ./data/cork/shard0/rs2 ./data/cork/logs/
