@@ -3,83 +3,57 @@ echo "killing mongod and mongos"
 killall mongod
 killall mongos
 echo "removing data files"
-rm -rf data/*
+rm -rf ./data
 
 # For mac make sure rlimits are high enough to open all necessary connections
 ulimit -n 2048
 
 # start a replica set and tell it that it will be shard0
-mkdir -p /data/cork/shard0/rs0 /data/cork/shard0/rs1 /data/cork/shard0/rs2
-mongod --replSet s0 --logpath "s0-r0.log" --dbpath data/cork/shard0/rs0 --port 37017 --fork --shardsvr --smallfiles
-mongod --replSet s0 --logpath "s0-r1.log" --dbpath data/cork/shard0/rs1 --port 37018 --fork --shardsvr --smallfiles
-mongod --replSet s0 --logpath "s0-r2.log" --dbpath data/cork/shard0/rs2 --port 37019 --fork --shardsvr --smallfiles
+mkdir -p ./data/cork/shard0/rs0 ./data/cork/shard0/rs1 ./data/cork/shard0/rs2
+mongod --replSet s0 --logpath "./data/cork/logs/s0-r0.log" --dbpath ./data/cork/shard0/rs0 --port 45001 --shardsvr --smallfiles
+mongod --replSet s0 --logpath "./data/cork/logs/s0-r1.log" --dbpath ./data/cork/shard0/rs1 --port 45002 --shardsvr --smallfiles
+mongod --replSet s0 --logpath "./data/cork/logs/s0-r2.log" --dbpath ./data/cork/shard0/rs2 --port 45003 --shardsvr --smallfiles
 
 sleep 5
 # connect to one server and initiate the set
-mongo --port 37017 << 'EOF'
-config = { _id: "s0", members:[
-          { _id : 0, host : "localhost:37017" },
-          { _id : 1, host : "localhost:37018" },
-          { _id : 2, host : "localhost:37019" }]};
-rs.initiate(config)
-EOF
+mongo --port 45001 --eval 'config = { _id: "s0", members:[{ _id : 0, host : "localhost:45001" },{ _id : 1, host : "localhost:45002" },{ _id : 2, host : "localhost:45003" }]};rs.initiate(config)'
 
 # start a replicate set and tell it that it will be a shard1
-mkdir -p /data/dublin/shard1/rs0 /data/dublin/shard1/rs1 /data/dublin/shard1/rs2
-mongod --replSet s1 --logpath "s1-r0.log" --dbpath data/dublin/shard1/rs0 --port 47017 --fork --shardsvr --smallfiles
-mongod --replSet s1 --logpath "s1-r1.log" --dbpath data/dublin/shard1/rs1 --port 47018 --fork --shardsvr --smallfiles
-mongod --replSet s1 --logpath "s1-r2.log" --dbpath data/dublin/shard1/rs2 --port 47019 --fork --shardsvr --smallfiles
+mkdir -p ./data/dublin/shard0/rs0 ./data/dublin/shard0/rs1 ./data/dublin/shard1/rs2
+mongod --replSet s1 --logpath "./data/dublin/logs/s1-r0.log" --dbpath ./data/dublin/shard1/rs0 --port 46001 --shardsvr --smallfiles
+mongod --replSet s1 --logpath "./data/dublin/logs/s1-r1.log" --dbpath ./data/dublin/shard1/rs1 --port 46002 --shardsvr --smallfiles
+mongod --replSet s1 --logpath "./data/dublin/logs/s1-r2.log" --dbpath ./data/dublin/shard1/rs2 --port 46003 --shardsvr --smallfiles
 
 sleep 5
-
-mongo --port 47017 << 'EOF'
-config = { _id: "s1", members:[
-          { _id : 0, host : "localhost:47017" },
-          { _id : 1, host : "localhost:47018" },
-          { _id : 2, host : "localhost:47019" }]};
-rs.initiate(config)
-EOF
+mongo --port 46001 --eval 'config = { _id: "s1", members:[{ _id : 0, host : "localhost:46001" },{ _id : 1, host : "localhost:46002" },{ _id : 2, host : "localhost:46003" }]};rs.initiate(config)'
 
 # start a replicate set and tell it that it will be a shard2
-mkdir -p /data/newyork/shard2/rs0 /data/newyork/shard2/rs1 /data/newyork/shard2/rs2
-mongod --replSet s2 --logpath "s2-r0.log" --dbpath data/newyork/shard2/rs0 --port 57017 --fork --shardsvr --smallfiles
-mongod --replSet s2 --logpath "s2-r1.log" --dbpath data/newyork/shard2/rs1 --port 57018 --fork --shardsvr --smallfiles
-mongod --replSet s2 --logpath "s2-r2.log" --dbpath data/newyork/shard2/rs2 --port 57019 --fork --shardsvr --smallfiles
+mkdir -p ./data/newyork/shard2/rs0 ./data/newyork/shard2/rs1 ./data/newyork/shard2/rs2
+mongod --replSet s2 --logpath "./data/newyork/logs/s2-r0.log" --dbpath ./data/newyork/shard2/rs0 --port 47001 --shardsvr --smallfiles
+mongod --replSet s2 --logpath "./data/newyork/logs/s2-r1.log" --dbpath ./data/newyork/shard2/rs1 --port 47002 --shardsvr --smallfiles
+mongod --replSet s2 --logpath "./data/newyork/logs/s2-r2.log" --dbpath ./data/newyork/shard2/rs2 --port 47003 --shardsvr --smallfiles
 
 sleep 5
-
-mongo --port 57017 << 'EOF'
-config = { _id: "s2", members:[
-          { _id : 0, host : "localhost:57017" },
-          { _id : 1, host : "localhost:57018" },
-          { _id : 2, host : "localhost:57019" }]};
-rs.initiate(config)
-EOF
-
+mongo --port 47001 --eval 'config = { _id: "s2", members:[{ _id : 0, host : "localhost:47001" },{ _id : 1, host : "localhost:47002" },{ _id : 2, host : "localhost:47003" }]};rs.initiate(config)'
 
 # now start 3 config servers
 rm cfg-a.log cfg-b.log cfg-c.log
-mkdir -p /data/config/config-a /data/config/config-b /data/config/config-c 
-mongod --logpath "cfg-a.log" --dbpath data/config/config-a --port 57040 --fork --configsvr --smallfiles
-mongod --logpath "cfg-b.log" --dbpath data/config/config-b --port 57041 --fork --configsvr --smallfiles
-mongod --logpath "cfg-c.log" --dbpath data/config/config-c --port 57042 --fork --configsvr --smallfiles
+mkdir -p ./data/config/config-a ./data/config/config-b ./data/config/config-c
+mongod --logpath "./data/config/logs/cfg-a.log" --dbpath ./data/config/config-a --port 55001 --configsvr --smallfiles
+mongod --logpath "./data/config/logs/cfg-b.log" --dbpath ./data/config/config-b --port 55002 --configsvr --smallfiles
+mongod --logpath "./data/config/logs/cfg-c.log" --dbpath ./data/config/config-c --port 55003 --configsvr --smallfiles
 
 
 # now start the mongos on port 27018
 rm mongos-1.log
 sleep 5
-mongos --port 27018 --logpath "mongos-1.log" --configdb localhost:57040,localhost:57041,localhost:57042 --fork
+mongos --port 59001 --logpath "mongos-1.log" --configdb localhost:55001,localhost:55002,localhost:55003
 echo "Waiting 60 seconds for the replica sets to fully come online"
 sleep 60
 echo "Connnecting to mongos and enabling sharding"
 
 # add shards and enable sharding on the test db
-mongo --port 27018 << 'EOF'
-db.adminCommand( { addshard : "s0/"+"localhost:37017" } );
-db.adminCommand( { addshard : "s1/"+"localhost:47017" } );
-db.adminCommand( { addshard : "s2/"+"localhost:57017" } );
-db.adminCommand({enableSharding: "test"});
-EOF
+mongo --port 27018 --eval 'db.adminCommand( { addshard : "s0/"+"localhost:45001" } );db.adminCommand( { addshard : "s1/"+"localhost:46001" } );db.adminCommand( { addshard : "s2/"+"localhost:47001" } );db.adminCommand({enableSharding: "test"});'
 
 sleep 5
 echo "Done setting up sharded environment on localhost"
