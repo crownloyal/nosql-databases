@@ -1,18 +1,18 @@
 #!/bin/bash
 # # # # # # #
-#  CONFIG   #
+#   FILES   #
 # # # # # # #
+CONFIGPATH="./var/config/"
 
-declare -a DC=("cork" "london" "newyork" "sanfrancisco" "hongkong")
-PORT=40000
-COUNT=5
 
-# FUNCTIONS
+# # # # # # #
+# FUNCTIONS #
+# # # # # # #
 function log() {
     FILE='./var/logs/creation.log'
 
     sed -i '' -e '$a\' $FILE
-    echo "[$(date --rfc-3339=seconds)]: $*" > $FILE
+    "[$(date --rfc-3339=seconds)]: $*" > $FILE
 }
 
 function setupLog() {
@@ -110,20 +110,22 @@ function createReplicas() {
 }
 
 function setConfiguration() {
-    FOLDER=$1
-    PORT=$2
     CONFIG='config = { _id: "$FOLDER", members:[{ _id : 0, host : "localhost:$PORT" }]};rs.initiate(config)'
 
     mongo --port 45001 --eval $CONFIG
 }
 
-clearRemnants() {
+function createShards() {
+    mongos --port 59001 --logpath "./data/mongos-1.log" --configdb configServers/localhost:55001,localhost:55002,localhost:55003 
+}
+
+function clearRemnants() {
     log "INFO: Killing mongod and mongos"
     killall mongod
     killall mongos
     log "INFO: Removing data files"
     rm -rf ./data/
-    rm -rf ./var/logs
+    rm ./var/logs/*
 }
 
 # # # # # # #
@@ -138,9 +140,9 @@ setupLog
 ulimit -n 2048
 
 # create shards
-SERVERLIST=createReplicas $DC
-setConfiguration $SERVERLIST $CONFIG
-
+createReplicas $DC
+#setConfiguration $DC
+#createShards $DC
 
 # now start the mongos on port 27018
 # rm mongos-1.log
