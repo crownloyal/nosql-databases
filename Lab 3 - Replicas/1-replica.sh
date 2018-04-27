@@ -1,27 +1,17 @@
 #!/bin/bash
 # # # # # # #
+# INCLUDES  #
+# # # # # # #
+. /var/common/log.sh
+
+# # # # # # #
 #   FILES   #
 # # # # # # #
 CONFIGPATH="./var/config/"
 
-
 # # # # # # #
 # FUNCTIONS #
 # # # # # # #
-function log() {
-    FILE='./var/logs/creation.log'
-
-    sed -i '' -e '$a\' $FILE
-    "[$(date --rfc-3339=seconds)]: $*" > $FILE
-}
-
-function setupLog() {
-    FILE='./var/logs/creation.log'
-
-    mkdir -p ./var/logs
-    touch $FILE
-}
-
 function countUp() {
     if [ $# -ne 2 ]; then
         log "ERR: Sequence aborted, missing params."
@@ -65,7 +55,7 @@ function mgnode() {
     DC=$1
     INSTANCEID=$2
 
-    mongod --replSet "$DC" --logpath "./data/cork/logs/rs$INSTANCEID.log" --dbpath "./data/cork/rs$INSTANCEID" --port "$PORT" --shardsvr --smallfiles
+    mongod --replSet "$DC" --logpath "./data/$DC/logs/rs$INSTANCEID.log" --dbpath "./data/$DC/rs$INSTANCEID" --port "$PORT" --shardsvr --smallfiles
 }
 
 function createMg() {
@@ -104,19 +94,6 @@ function createReplicas() {
         createMg $location
     done
 
-    # wait a tiny bit
-    sleep 5
-
-}
-
-function setConfiguration() {
-    CONFIG='config = { _id: "$FOLDER", members:[{ _id : 0, host : "localhost:$PORT" }]};rs.initiate(config)'
-
-    mongo --port 45001 --eval $CONFIG
-}
-
-function createShards() {
-    mongos --port 59001 --logpath "./data/mongos-1.log" --configdb configServers/localhost:55001,localhost:55002,localhost:55003 
 }
 
 function clearRemnants() {
@@ -141,19 +118,3 @@ ulimit -n 2048
 
 # create shards
 createReplicas $DC
-#setConfiguration $DC
-#createShards $DC
-
-# now start the mongos on port 27018
-# rm mongos-1.log
-# sleep 5
-# mongos --port 59001 --logpath "./data/mongos-1.log" --configdb configServers/localhost:55001,localhost:55002,localhost:55003 
-# echo "Waiting 60 seconds for the replica sets to fully come online"
-# sleep 60
-# echo "Connnecting to mongos and enabling sharding"
-
-# # add shards and enable sharding on the test db
-# mongo --port 27018 --eval 'db.adminCommand( { addshard : "s0/"+"localhost:45001" } );db.adminCommand( { addshard : "s1/"+"localhost:46001" } );db.adminCommand( { addshard : "s2/"+"localhost:47001" } );db.adminCommand({enableSharding: "test"});'
-
-# sleep 5
-# echo "Done setting up sharded environment on localhost"
