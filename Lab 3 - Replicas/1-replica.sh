@@ -2,19 +2,22 @@
 # # # # # # #
 # INCLUDES  #
 # # # # # # #
-. /var/common/log.sh
+source ./var/common/log.sh
+source ./var/common/find.sh
 
 # # # # # # #
 #   FILES   #
 # # # # # # #
-CONFIGPATH="./var/config/"
+CONFIGPATH=./var/config
+DCLIST=$CONFIGPATH/datacentres.cfg
+RPLCFG=$CONFIGPATH/replicas.cfg
 
 # # # # # # #
 # FUNCTIONS #
 # # # # # # #
 function countUp() {
     if [ $# -ne 2 ]; then
-        log "ERR: Sequence aborted, missing params."
+        writeToLog "ERR: Sequence aborted, missing params."
         exit 100
     fi
 
@@ -25,19 +28,19 @@ function countUp() {
 
 function mgdir() {
     if [ $# -ne 2 ]; then
-        log "ERR: Sequence aborted, missing params."
-        log "Function mgdir() requires 1 param"
-        log "1: data centre"
-        log "2: instance count"
+        writeToLog "ERR: Sequence aborted, missing params."
+        writeToLog "Function mgdir() requires 2 params"
+        writeToLog "1: data centre"
+        writeToLog "2: instance count"
         exit 100
     fi
 
     DC=$1
     COUNT=$2
 
-    log "INFO: Creating folder: ./data/$DC/logs"
+    writeToLog "INFO: Creating folder: ./data/$DC/logs"
     mkdir -p ./data/$DC/logs
-    log "INFO: Creating folder: ./data/$DC/*"
+    writeToLog "INFO: Creating folder: ./data/$DC/*"
     for i in $COUNT; do
         mkdir -p ./data/$DC/rs$i
     done
@@ -45,10 +48,10 @@ function mgdir() {
 
 function mgnode() {
     if [ $# -ne 2 ]; then
-        log "ERR: Sequence aborted, missing params."
-        log "Function mgnode() requires 2 params"
-        log "1: data centre"
-        log "2: instance id"
+        writeToLog "ERR: Sequence aborted, missing params."
+        writeToLog "Function mgnode() requires 2 params"
+        writeToLog "1: data centre"
+        writeToLog "2: instance id"
         exit 100
     fi
 
@@ -60,10 +63,10 @@ function mgnode() {
 
 function createMg() {
     if [ $# -ne 2 ]; then
-        log "ERR: Sequence aborted, missing params."
-        log "Function mgd() requires 3 params"
-        log "1: data centre"
-        log "2: instance count"
+        writeToLog "ERR: Sequence aborted, missing params."
+        writeToLog "Function createMg() requires 2 params"
+        writeToLog "1: data centre"
+        writeToLog "2: instance count"
         exit 100
     fi
 
@@ -80,29 +83,28 @@ function createMg() {
 
 function createReplicas() {
     if [ $# -ne 1 ]; then
-        log "ERR: Sequence aborted, missing params"
-        log "Function createReplica() requires 1 param"
-        log "1: Amount of servers per replica set"
+        writeToLog "ERR: Sequence aborted, missing params"
+        writeToLog "Function createReplica() requires 1 param"
+        writeToLog "1: Amount of servers per replica set"
         return 0
     fi
 
     DATACENTRES=$1
 
-    for location in ${DATACENTRES[@]}; do
-        log "INFO: Setting up DC $location"
-        mgdir $location
-        createMg $location
-    done
+    while read location; do
+        writeToLog "INFO: Setting up DC $location"
+        createMg $location $(findLineAttribute $RPLCFG count)
+    done < $DATACENTRES
 
 }
 
 function clearRemnants() {
-    log "INFO: Killing mongod and mongos"
+    writeToLog "INFO: Killing mongod and mongos"
     killall mongod
     killall mongos
-    log "INFO: Removing data files"
+    writeToLog "INFO: Removing data files"
     rm -rf ./data/
-    rm ./var/logs/*
+    rm -rf ./var/logs
 }
 
 # # # # # # #
@@ -117,4 +119,4 @@ setupLog
 ulimit -n 2048
 
 # create shards
-createReplicas $DC
+createReplicas $DCLIST
