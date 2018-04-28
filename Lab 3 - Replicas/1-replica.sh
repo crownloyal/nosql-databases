@@ -41,7 +41,7 @@ function mgdir() {
     writeToLog "INFO: Creating folder: ./data/$DC/logs"
     mkdir -p ./data/$DC/logs
     writeToLog "INFO: Creating folder: ./data/$DC/*"
-    for i in $COUNT; do
+    for ((i=0;i<$COUNT;i++)); do
         mkdir -p ./data/$DC/rs$i
     done
 }
@@ -93,9 +93,10 @@ function createReplicas() {
 
     while read location; do
         writeToLog "INFO: Setting up DC $location"
-        createMg $location $(findLineAttribute $RPLCFG count)
-    done < $DATACENTRES
 
+        # COUNT=$(findLineAttribute $RPLCFG "count") # TODO - read from config
+        createMg $location 5
+    done < $DATACENTRES
 }
 
 function clearRemnants() {
@@ -108,9 +109,8 @@ function clearRemnants() {
 }
 
 # # # # # # #
-#   SCRIPT  #
+#   R U N   #
 # # # # # # #
-
 # clean everything up
 clearRemnants
 setupLog
