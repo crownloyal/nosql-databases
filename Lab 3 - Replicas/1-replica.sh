@@ -87,7 +87,7 @@ function createReplicas() {
     while read location; do
         writeToLog "INFO: Setting up DC $location"
 
-        INSTANCESCOUNT=5 #$(findLineAttribute $RPLCFG "count")
+        INSTANCESCOUNT=$(findLineAttribute "repl" "count")
         createMg $location $INSTANCESCOUNT
     done < $DATACENTRES
 }
@@ -112,6 +112,4 @@ setupLog
 ulimit -n 2048
 
 # create shards
-DCLIST=$(getFilePath "dc")
-echo $DCLIST
-createReplicas $DCLIST
+createReplicas $(getFilePath "dc")
