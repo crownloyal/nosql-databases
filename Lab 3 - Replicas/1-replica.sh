@@ -6,13 +6,6 @@ source ./var/common/log.sh
 source ./var/common/find.sh
 
 # # # # # # #
-#   FILES   #
-# # # # # # #
-CONFIGPATH=./var/config
-DCLIST=$CONFIGPATH/datacentres.cfg
-RPLCFG=$CONFIGPATH/replicas.cfg
-
-# # # # # # #
 # FUNCTIONS #
 # # # # # # #
 function countUp() {
@@ -23,7 +16,7 @@ function countUp() {
 
     VALUE=$1
     ADD=$2
-    return ${$1+$2}
+    echo ${$VALUE+$ADD}
 }
 
 function mgdir() {
@@ -86,7 +79,7 @@ function createReplicas() {
         writeToLog "ERR: Sequence aborted, missing params"
         writeToLog "Function createReplica() requires 1 param"
         writeToLog "1: Amount of servers per replica set"
-        return 0
+        exit 200
     fi
 
     DATACENTRES=$1
@@ -94,8 +87,8 @@ function createReplicas() {
     while read location; do
         writeToLog "INFO: Setting up DC $location"
 
-        # COUNT=$(findLineAttribute $RPLCFG "count") # TODO - read from config
-        createMg $location 5
+        INSTANCESCOUNT=5 #$(findLineAttribute $RPLCFG "count")
+        createMg $location $INSTANCESCOUNT
     done < $DATACENTRES
 }
 
@@ -119,4 +112,6 @@ setupLog
 ulimit -n 2048
 
 # create shards
+DCLIST=$(getFilePath "dc")
+echo $DCLIST
 createReplicas $DCLIST
