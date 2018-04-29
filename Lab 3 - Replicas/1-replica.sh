@@ -6,6 +6,11 @@ source ./var/common/log.sh
 source ./var/common/find.sh
 
 # # # # # # #
+#   VARS    #
+# # # # # # #
+PORT=$(findLineAttribute "host" "port")
+
+# # # # # # #
 # FUNCTIONS #
 # # # # # # #
 function countUp() {
@@ -16,7 +21,7 @@ function countUp() {
 
     VALUE=$1
     ADD=$2
-    echo ${$VALUE+$ADD}
+    echo $($VALUE+$ADD)
 }
 
 function mgdir() {
@@ -50,8 +55,7 @@ function mgnode() {
 
     DC=$1
     INSTANCEID=$2
-
-    mongod --replSet "$DC" --logpath "./data/$DC/logs/rs$INSTANCEID.log" --dbpath "./data/$DC/rs$INSTANCEID" --port "$PORT" --shardsvr --smallfiles
+    ./var/common/startMongoNode.sh $DC $INSTANCEID $PORT
 }
 
 function createMg() {
@@ -68,9 +72,9 @@ function createMg() {
 
     mgdir $DC $COUNT
 
-    for i in $COUNT; do
+    for ((i=0;i<$COUNT;i++)); do
         mgnode $DC $i
-        PORT=countUp $PORT 10
+        PORT=$(countUp $PORT 10)
     done
 }
 
@@ -93,12 +97,7 @@ function createReplicas() {
 }
 
 function clearRemnants() {
-    writeToLog "INFO: Killing mongod and mongos"
-    killall mongod
-    killall mongos
-    writeToLog "INFO: Removing data files"
-    rm -rf ./data/
-    rm -rf ./var/logs
+    ./var/common/clearRemnants.sh
 }
 
 # # # # # # #
