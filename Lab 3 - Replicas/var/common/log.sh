@@ -2,7 +2,7 @@
 FILE=./var/logs/creation.log
 
 function writeToLog() {
-    echo "[$(date +"%F %T")]: $*" | tee $FILE
+    echo "[$(date +"%F %T")]: $*" >> $FILE
 }
 
 function setupLog() {

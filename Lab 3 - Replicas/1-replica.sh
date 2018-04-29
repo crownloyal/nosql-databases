@@ -74,7 +74,7 @@ function createMg() {
 
     for ((i=0;i<$COUNT;i++)); do
         mgnode $DC $i
-        PORT=$(countUp $PORT 10)
+        PORT=$(countUp $PORT 5)
     done
 }
 
