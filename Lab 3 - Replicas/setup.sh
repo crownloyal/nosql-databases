@@ -4,6 +4,7 @@
 # # # # # # #
 source ./var/common/log.sh
 source ./var/common/find.sh
+source ./var/common/findNode.sh
 source ./var/common/math.sh
 
 # # # # # # #
@@ -83,27 +84,38 @@ function createReplicas() {
         writeToLog "INFO: Setting up DC $location"
         createMg $location $INSTANCESCOUNT
 
-        writeToLog "INFO: Configuring up DC $location"
+        writeToLog "INFO: Configuring DC $location"
         configureReplica $location
     done < $DATACENTRES
 }
 
 configureReplica() {
     LOCATION=$1
-    INSTANCESCOUNT=$(findLineAttribute "repl" "count")
     HOST=$(findLineAttribute "host" "host")
-    NODES=$(getFilePath "map" "$LOCATION")
-    FIRSTPORT=$(head -n 1 $NODES | sed 's/.* //')
+    NODES=$(getFilePath "map")
+    PRIMID=$(findId $LOCATION)
+    PRIMPORT=$(findPrimaryPort $LOCATION)
 
-    CONFIG='config = { _id: "$LOCATION", members:['
+    CONFIGURATION="config={ _id: $LOCATION, members:["
     while read details; do
-        CONFIG+='{ _id : 0, host : "$HOST":"$PORT" },'
+        if [[ $details =~ "$LOCATION" ]]; then
+            writeToLog "Matched $LOCATION"
+            CONFIGURATION+="{ _id : rs$DATASET[1], host : $HOST:$PORT },"
+        fi
     done < $NODES
-    CONFIG+="};rs.initiate(config)"
+    CONFIGURATION+="]};rs.initiate(config);"
 
-    mongo --port $FIRSTPORT --eval $CONFIG
+    writeToLog "$PRIMID:$PRIMPORT : $CONFIGURATION"
+    mongo --port $PRIMPORT --eval $CONFIGURATION
 }
 
 function clearRemnants() {
     ./var/common/clearRemnants.sh
 }
+
+# # # # # # # # # #
+# EXIT CODES      #
+# # # # # # # # # #
+
+# EXIT 100: Failed for missing parameters
+# EXIT 200: Failed during initialising mongod

@@ -24,6 +24,8 @@ selectFile() {
         echo "$HOSTCFG"
     elif [ "$SHORTCUT" = "map" ]; then
         echo "$NODEMAP"
+    elif [ "$#" -gt 1 ]; then
+        echo "$*"
     else
         writeToLog "ERR: Sequence aborted, missing params"
         writeToLog "Function selectFile() requires file shortcut"

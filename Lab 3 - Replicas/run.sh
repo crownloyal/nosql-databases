@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source ./replica.sh
+source ./setup.sh
 
 # # # # # # # #
 # R U N . SH  #
