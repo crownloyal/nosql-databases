@@ -11,6 +11,7 @@ CONFIGPATH=./var/config
 DCLIST=$CONFIGPATH/datacentres.cfg
 RPLCFG=$CONFIGPATH/replicas.cfg
 HOSTCFG=$CONFIGPATH/host.cfg
+NODEMAP=$CONFIGPATH/node.map
 
 selectFile() {
     SHORTCUT=$1
@@ -21,10 +22,12 @@ selectFile() {
         echo "$RPLCFG"
     elif [ "$SHORTCUT" = "host" ]; then
         echo "$HOSTCFG"
+    elif [ "$SHORTCUT" = "map" ]; then
+        echo "$NODEMAP"
     else
         writeToLog "ERR: Sequence aborted, missing params"
         writeToLog "Function selectFile() requires file shortcut"
-        writeToLog $SHORTCUT
+        writeToLog "Requested: $SHORTCUT"
     fi
 }
 

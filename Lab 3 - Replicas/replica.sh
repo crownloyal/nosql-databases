@@ -4,6 +4,7 @@
 # # # # # # #
 source ./var/common/log.sh
 source ./var/common/find.sh
+source ./var/common/math.sh
 
 # # # # # # #
 #   VARS    #
@@ -13,17 +14,6 @@ PORT=$(findLineAttribute "host" "port")
 # # # # # # #
 # FUNCTIONS #
 # # # # # # #
-function countUp() {
-    if [ $# -ne 2 ]; then
-        writeToLog "ERR: Sequence aborted, missing params."
-        exit 100
-    fi
-
-    VALUE=$1
-    ADD=$2
-    echo $(( $VALUE+$ADD ))
-}
-
 function mgdir() {
     if [ $# -ne 2 ]; then
         writeToLog "ERR: Sequence aborted, missing params."
@@ -38,8 +28,8 @@ function mgdir() {
 
     writeToLog "INFO: Creating folder: ./data/$DC/logs"
     mkdir -p ./data/$DC/logs
-    writeToLog "INFO: Creating folder: ./data/$DC/*"
     for ((i=0;i<$COUNT;i++)); do
+        writeToLog "INFO: Creating folder: ./data/$DC/rs$i"
         mkdir -p ./data/$DC/rs$i
     done
 }
@@ -87,28 +77,33 @@ function createReplicas() {
     fi
 
     DATACENTRES=$1
+    INSTANCESCOUNT=$(findLineAttribute "repl" "count")
 
     while read location; do
         writeToLog "INFO: Setting up DC $location"
-
-        INSTANCESCOUNT=$(findLineAttribute "repl" "count")
         createMg $location $INSTANCESCOUNT
+
+        writeToLog "INFO: Configuring up DC $location"
+        configureReplica $location
     done < $DATACENTRES
+}
+
+configureReplica() {
+    LOCATION=$1
+    INSTANCESCOUNT=$(findLineAttribute "repl" "count")
+    HOST=$(findLineAttribute "host" "host")
+    NODES=$(getFilePath "map" "$LOCATION")
+    FIRSTPORT=$(head -n 1 $NODES | sed 's/.* //')
+
+    CONFIG='config = { _id: "$LOCATION", members:['
+    while read details; do
+        CONFIG+='{ _id : 0, host : "$HOST":"$PORT" },'
+    done < $NODES
+    CONFIG+="};rs.initiate(config)"
+
+    mongo --port $FIRSTPORT --eval $CONFIG
 }
 
 function clearRemnants() {
     ./var/common/clearRemnants.sh
 }
-
-# # # # # # #
-#   R U N   #
-# # # # # # #
-# clean everything up
-clearRemnants
-setupLog
-
-# For mac make sure rlimits are high enough to open all necessary connections
-ulimit -n 2048
-
-# create shards
-createReplicas $(getFilePath "dc")

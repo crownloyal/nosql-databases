@@ -10,3 +10,4 @@ killall mongos
 writeToLog "INFO: Removing data files"
 rm -rf ./data/
 rm -rf ./var/logs
+> ./var/config/node.map
