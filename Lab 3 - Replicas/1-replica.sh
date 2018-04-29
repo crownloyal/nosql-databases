@@ -21,7 +21,7 @@ function countUp() {
 
     VALUE=$1
     ADD=$2
-    echo $($VALUE+$ADD)
+    echo $(( $VALUE+$ADD ))
 }
 
 function mgdir() {
