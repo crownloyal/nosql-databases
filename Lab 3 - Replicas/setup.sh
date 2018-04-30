@@ -99,13 +99,14 @@ configureReplica() {
     CONFIGURATION="config={ _id: $LOCATION, members:["
     while read details; do
         if [[ $details =~ "$LOCATION" ]]; then
-            writeToLog "Matched $LOCATION"
-            CONFIGURATION+="{ _id : rs$DATASET[1], host : $HOST:$PORT },"
+            DETAILID=$(echo $details | cut -d ":" -f 2)
+            DETAILPORT=$(echo $details | cut -d ":" -f 3)
+            CONFIGURATION+="{ _id : rs$DETAILID, host : $HOST:$DETAILPORT },"
         fi
     done < $NODES
     CONFIGURATION+="]};rs.initiate(config);"
 
-    writeToLog "$PRIMID:$PRIMPORT : $CONFIGURATION"
+    writeToLog "$PRIMPORT: $CONFIGURATION"
     mongo --port $PRIMPORT --eval $CONFIGURATION
 }
 
