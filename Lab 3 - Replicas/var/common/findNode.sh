@@ -6,6 +6,9 @@ findFirst() {
     QUERY=$1
     echo $(findAll $QUERY | head -n 1)
 }
+findLast() {
+    echo $(findAll $QUERY | tail -2 | head -1)
+}
 findAll() {
     QUERY=$1
     echo $(grep -i $QUERY $MAP)
@@ -18,6 +21,10 @@ findAllPorts() {
 findPrimaryPort() {
     QUERY=$1
     echo $(findFirst $QUERY | cut -d ":" -f 3)
+}
+findLastPort() {
+    QUERY=$1
+    echo $(findLast $QUERY | cut -d ":" -f 3)
 }
 
 findAllIds() {

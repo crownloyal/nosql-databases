@@ -1,6 +1,9 @@
 #!/bin/bash
-
+# # # # # # #
+# INCLUDES  #
+# # # # # # #
 source ./setup.sh
+source ./configure.sh
 
 # # # # # # # #
 # R U N . SH  #
@@ -15,3 +18,4 @@ ulimit -n 2048
 
 # create shards
 createReplicas $(getFilePath "dc")
+createConfigServers

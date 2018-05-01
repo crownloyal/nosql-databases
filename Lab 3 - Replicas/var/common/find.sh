@@ -10,6 +10,7 @@ source ./var/common/log.sh
 CONFIGPATH=./var/config
 DCLIST=$CONFIGPATH/datacentres.cfg
 RPLCFG=$CONFIGPATH/replicas.cfg
+CFGCFG=$CONFIGPATH/configservers.cfg
 HOSTCFG=$CONFIGPATH/host.cfg
 NODEMAP=$CONFIGPATH/node.map
 
@@ -20,6 +21,8 @@ selectFile() {
         echo "$DCLIST"
     elif [ "$SHORTCUT" = "repl" ]; then
         echo "$RPLCFG"
+    elif [ "$SHORTCUT" = "cfg" ]; then
+        echo "$CFGCFG"
     elif [ "$SHORTCUT" = "host" ]; then
         echo "$HOSTCFG"
     elif [ "$SHORTCUT" = "map" ]; then
