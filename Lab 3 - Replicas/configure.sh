@@ -10,11 +10,12 @@ source ./var/common/math.sh
 # # # # # # #
 # FUNCTIONS #
 # # # # # # #
-configdir() {
+function configdir() {
     if [ $# -ne 1 ]; then
         writeToLog "ERR: Sequence aborted, missing params."
         writeToLog "Function configdir() requires 1 param"
         writeToLog "1: data centre"
+        exit 100
     fi
 
     LOCATION=$1
@@ -22,22 +23,21 @@ configdir() {
     mkdir -p ./var/logs/$LOCATION/meta
 }
 
-startConfigServer() {
-    if [ $# -ne 3 ]; then
+function startConfigServer() {
+    if [ $# -ne 2 ]; then
         writeToLog "ERR: Sequence aborted, missing params."
-        writeToLog "Function startConfigServer() requires 3 params"
-        writeToLog "1: data centre"
+        writeToLog "Function startConfigServer() requires 2 params"
+        writeToLog "1: datacentre"
         writeToLog "2: port"
-        writeToLog "3: database location"
+        exit 100
     fi
 
     DATACENTRE=$1
     PORT=$2
-    DB=$3
-    ./var/common/startConfigNode.sh $DATACENTRE $PORT $DB
+    ./var/common/startConfigNode.sh $DATACENTRE $PORT
 }
 
-createConfigServers() {
+function createConfigServers() {
     DATACENTRES=$(getFilePath "dc")
     SERVERCFGCOUNT=$(findLineAttribute "cfg")
 
@@ -45,9 +45,9 @@ createConfigServers() {
         configdir $location
         for ((i=0;i<$SERVERCFGCOUNT;i++)); do
             PORT=$(countUp $(findLastPort) 5)
-            startConfigServer $location $(countUp findLastPort 5) $DBPATH
+            startConfigServer $location $PORT
         done
-    done << $DATACENTRES
+    done < $DATACENTRES
 }
 
 

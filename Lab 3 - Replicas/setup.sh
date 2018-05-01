@@ -70,14 +70,7 @@ function createMg() {
 }
 
 function createReplicas() {
-    if [ $# -ne 1 ]; then
-        writeToLog "ERR: Sequence aborted, missing params"
-        writeToLog "Function createReplica() requires 1 param"
-        writeToLog "1: Amount of servers per replica set"
-        exit 200
-    fi
-
-    DATACENTRES=$1
+    DATACENTRES=$(getFilePath "dc")
     INSTANCESCOUNT=$(findLineAttribute "repl" "count")
 
     while read location; do
@@ -89,8 +82,8 @@ function createReplicas() {
     done < $DATACENTRES
 }
 
-configureReplica() {
-    LOCATION=$1
+function configureReplica() {
+    LOCATION=$(getFilePath "dc")
     HOST=$(findLineAttribute "host" "host")
     NODES=$(getFilePath "map")
     PRIMID=$(findId $LOCATION)

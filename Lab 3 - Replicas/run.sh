@@ -17,5 +17,4 @@ setupLog
 ulimit -n 2048
 
 # create shards
-createReplicas $(getFilePath "dc")
-createConfigServers
+createReplicas && createConfigServers
