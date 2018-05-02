@@ -89,18 +89,20 @@ function configureReplica() {
     PRIMID=$(findId $LOCATION)
     PRIMPORT=$(findPrimaryPort $LOCATION)
 
-    CONFIGURATION="rs.initiate({ _id: '$LOCATION', members:["
+    CONFIGURATION='rs.initiate({ _id: '
+    CONFIGURATION+=$LOCATION
+    CONFIGURATION+=', members: ['
     while read details; do
         if [[ $details =~ "$LOCATION" ]]; then
             writeToLog "DEBUG: $details"
             DETAILID=$(echo $details | cut -d ":" -f 2)
             DETAILPORT=$(echo $details | cut -d ":" -f 3)
-            CONFIGURATION+="{ _id: 'rs$DETAILID', host: '$HOST:$DETAILPORT' },"
+            CONFIGURATION+='{ _id: rs$DETAILID, host: $HOST:$DETAILPORT },'
         fi
     done < $NODES
-    CONFIGURATION+="]} );rs.status();"
+    CONFIGURATION+=']});rs.status();'
 
-    writeToLog "Writing configuration to $PRIMPORT : $CONFIGURATION"
+    writeToLog "INFO: Writing configuration to $PRIMPORT : $CONFIGURATION"
     mongo --port $PRIMPORT --eval $CONFIGURATION
 }
 
