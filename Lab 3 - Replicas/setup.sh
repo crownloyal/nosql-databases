@@ -83,7 +83,7 @@ function createReplicas() {
 }
 
 function configureReplica() {
-    LOCATION=$(getFilePath "dc")
+    LOCATION=$1
     HOST=$(findLineAttribute "host" "host")
     NODES=$(getFilePath "map")
     PRIMID=$(findId $LOCATION)
@@ -92,6 +92,7 @@ function configureReplica() {
     CONFIGURATION="rs.initiate({ _id: '$LOCATION', members:["
     while read details; do
         if [[ $details =~ "$LOCATION" ]]; then
+            writeToLog "DEBUG: $details"
             DETAILID=$(echo $details | cut -d ":" -f 2)
             DETAILPORT=$(echo $details | cut -d ":" -f 3)
             CONFIGURATION+="{ _id: 'rs$DETAILID', host: '$HOST:$DETAILPORT' },"
