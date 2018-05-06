@@ -55,6 +55,7 @@ findLineAttribute() {
         writeToLog "Function findLineAttribute() requires 2 params"
         writeToLog "1: File to search"
         writeToLog "2: query word"
+        writeToLog "Received: $1"
         echo 0
     fi
 

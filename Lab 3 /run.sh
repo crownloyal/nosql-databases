@@ -17,5 +17,6 @@ wait
 ulimit -n 2048
 
 # create shards
-createReplicas && createConfigServers
+createReplicas
+createConfigs
 wait

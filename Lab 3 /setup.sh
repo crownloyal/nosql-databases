@@ -8,11 +8,6 @@ source ./var/common/findNode.sh
 source ./var/common/math.sh
 
 # # # # # # #
-#   VARS    #
-# # # # # # #
-PORT=$(findLineAttribute "host" "port")
-
-# # # # # # #
 # FUNCTIONS #
 # # # # # # #
 function mgdir() {
@@ -26,46 +21,49 @@ function mgdir() {
 
     local DC=$1
     local COUNT=$2
+    local LOGPATH=./data/$DC/logs
 
     writeToLog "INFO: Creating folder: ./data/$DC/logs"
-    mkdir -p ./data/$DC/logs
+    mkdir -p $LOGPATH
     for ((i=0;i<$COUNT;i++)); do
-        writeToLog "INFO: Creating folder: ./data/$DC/rs$i"
-        mkdir -p ./data/$DC/rs$i
+        writeToLog "INFO: Creating folder: $LOGPATH/$i"
+        mkdir -p ./data/$DC/$i
     done
 }
 
-function mgnode() {
-    if [ $# -ne 2 ]; then
+function createReplicaNode() {
+    if [ $# -ne 3 ]; then
         writeToLog "ERR: Sequence aborted, missing params."
-        writeToLog "Function mgnode() requires 2 params"
+        writeToLog "Function createReplicaNode() requires 2 params"
         writeToLog "1: data centre"
         writeToLog "2: instance id"
         exit 100
     fi
 
-    local DC=$1
+    local DATACENTRE=$1
     local INSTANCEID=$2
-    ./var/common/startMongoNode.sh $DC $INSTANCEID $PORT
+    local PORT=$3
+    ./var/common/startMongoNode.sh $DATACENTRE $INSTANCEID $PORT
 }
 
-function createMg() {
+function createReplicaSet() {
     if [ $# -ne 2 ]; then
         writeToLog "ERR: Sequence aborted, missing params."
-        writeToLog "Function createMg() requires 2 params"
+        writeToLog "Function createReplicaSet() requires 2 params"
         writeToLog "1: data centre"
         writeToLog "2: instance count"
         exit 100
     fi
 
-    local DC=$1
+    local DATACENTRE=$1
     local COUNT=$2
+    PORT=$(countUp $(findLastPort) 5)
 
-    mgdir $DC $COUNT
+    mgdir $DATACENTRE $COUNT
 
     for ((i=0;i<$COUNT;i++)); do
-        mgnode $DC $i
-        PORT=$(countUp $PORT 5)
+        PORT=${(countUp $(findLastPort) 5):-$(findLineAttribute "host" "port")}      # some bash magic for default values
+        createReplicaNode $DATACENTRE $i $PORT
     done
 }
 
@@ -75,7 +73,7 @@ function createReplicas() {
 
     while read location; do
         writeToLog "INFO: Setting up DC $location"
-        createMg $location $INSTANCESCOUNT
+        createReplicaSet $location $INSTANCESCOUNT
 
         writeToLog "INFO: Configuring DC $location"
         configureReplica $location
@@ -86,8 +84,7 @@ function configureReplica() {
     local LOCATION=$1
     local HOST=$(findLineAttribute "host" "host")
     local NODES=$(getFilePath "map")
-    local PRIMID=$(findId $LOCATION)
-    local PRIMPORT=$(findPrimaryPort $LOCATION)
+    local PRIMEPORT=$(findPrimaryPort $LOCATION)
 
     local CONFIGURATION='rs.initiate({ _id: "'
     CONFIGURATION+=$LOCATION
@@ -95,8 +92,8 @@ function configureReplica() {
     while read details; do
         if [[ $details =~ "$LOCATION" ]]; then
             writeToLog "DEBUG: $details"
-            DETAILID=$(echo $details | cut -d ":" -f 2)
-            DETAILPORT=$(echo $details | cut -d ":" -f 3)
+            local DETAILID=$(echo $details | cut -d ":" -f 2)
+            local DETAILPORT=$(echo $details | cut -d ":" -f 3)
             CONFIGURATION+='{ _id: '
             CONFIGURATION+=$DETAILID
             CONFIGURATION+=', host: "'
@@ -108,8 +105,8 @@ function configureReplica() {
     CONFIGURATION=$(echo $CONFIGURATION | sed s/},]/}]/g)                   # remove final comma
 
     writeToLog "INFO: Writing configuration to $PRIMPORT : $CONFIGURATION"
-    mongo --port $PRIMPORT --eval $CONFIGURATION
-    mongo --port $PRIMPORT --eval "rs.isMaster()"
+    mongo --port $PRIMEPORT --eval $CONFIGURATION
+    mongo --port $PRIMEPORT --eval "rs.isMaster()"
 }
 
 function clearRemnants() {
@@ -121,4 +118,4 @@ function clearRemnants() {
 # # # # # # # # # #
 
 # EXIT 100: Failed for missing parameters
-# EXIT 200: Failed during initialising mongod
+# EXIT 200: Failed during initialising mongo

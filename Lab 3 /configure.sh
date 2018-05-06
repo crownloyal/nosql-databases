@@ -23,11 +23,11 @@ function configdir() {
     mkdir -p ./var/logs/$LOCATION/meta
 }
 
-function startConfigServer() {
-    if [ $# -ne 2 ];then
+function startConfigNode() {
+    if [ $# -ne 2 ]; then
         writeToLog "ERR: Sequence aborted, missing params."
-        writeToLog "Function startConfigServer() requires 2 params"
-        writeToLog "1: datacentre"
+        writeToLog "Function startConfigNode() requires 2 params"
+        writeToLog "1: data centre"
         writeToLog "2: port"
         exit 100
     fi
@@ -37,16 +37,32 @@ function startConfigServer() {
     ./var/common/startConfigNode.sh $DATACENTRE $PORT
 }
 
-function createConfigServers() {
+function createConfigSet() {
+    if [ $# -ne 2 ]; then
+        writeToLog "ERR: Sequence aborted, missing params."
+        writeToLog "Function createReplicaSet() requires 2 params"
+        writeToLog "1: data centre"
+        writeToLog "2: instance count"
+        exit 100
+    fi
+
+    local DATACENTRE=$1
+    local COUNT=$2
+    
+    for ((i=0;i<$SERVERCFGCOUNT;i++)); do
+        local PORT=$(countUp $(findLastPort) 5)
+        startConfigNode $location $PORT
+    done
+}
+
+function createConfigs() {
     local DATACENTRES=$(getFilePath "dc")
-    local SERVERCFGCOUNT=$(findLineAttribute "cfg")
+    local SERVERCFGCOUNT=$(findLineAttribute "cfg" "count")
 
     while read location; do
+        writeToLog "INFO: Setting up config server for $location"
         configdir $location
-        for ((i=0;i<$SERVERCFGCOUNT;i++)); do
-            PORT=$(countUp $(findLastPort) 5)
-            startConfigServer $location $PORT
-        done
+        createConfigSet $location $SERVERCFGCOUNT
     done < $DATACENTRES
 }
 
