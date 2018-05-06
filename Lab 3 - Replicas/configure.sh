@@ -23,8 +23,8 @@ function configdir() {
     mkdir -p ./var/logs/$LOCATION/meta
 }
 
-function startConfigServer() {
-    if [ $# -ne 2 ]; then
+function startConfigServer() {
+    if [ $# -ne 2 ];then
         writeToLog "ERR: Sequence aborted, missing params."
         writeToLog "Function startConfigServer() requires 2 params"
         writeToLog "1: datacentre"

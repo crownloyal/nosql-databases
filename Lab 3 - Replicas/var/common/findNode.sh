@@ -4,7 +4,7 @@ MAP=./var/config/node.map
 
 findFirst() {
     QUERY=$1
-    echo $(findAll $QUERY | head -n 1)
+    echo $(findAll $QUERY | cut -d " " -f 1)
 }
 findLast() {
     echo $(findAll $QUERY | tail -2 | head -1)

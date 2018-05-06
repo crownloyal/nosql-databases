@@ -10,11 +10,12 @@ source ./configure.sh
 # # # # # # # #
 
 # clean everything up
-clearRemnants
-setupLog
+clearRemnants && setupLog
+wait
 
 # For mac make sure rlimits are high enough to open all necessary connections
 ulimit -n 2048
 
 # create shards
 createReplicas && createConfigServers
+wait
