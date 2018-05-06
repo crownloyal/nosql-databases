@@ -41,7 +41,7 @@ getFilePath() {
 }
 
 hasPattern() {
-    FILE=$(selectFile $1)
+    local FILE=$(selectFile $1)
     if [[ $FILE =~ "s/.*://" ]]; then
         echo 1
     fi
@@ -58,9 +58,9 @@ findLineAttribute() {
         echo 0
     fi
 
-    FILE=$(selectFile $1)
-    QUERY=$2
+    local FILE=$(selectFile $1)
+    local QUERY=$2
 
-    RESULT=$(cat $FILE | grep -i $QUERY | sed 's/.*://')
+    local RESULT=$(cat $FILE | grep -i $QUERY | sed 's/.*://')
     echo $RESULT
 }

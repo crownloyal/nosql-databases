@@ -6,7 +6,7 @@ function countUp() {
         exit 100
     fi
 
-    VALUE=$1
-    ADD=$2
+    local VALUE=$1
+    local ADD=$2
     echo $(( $VALUE+$ADD ))
 }

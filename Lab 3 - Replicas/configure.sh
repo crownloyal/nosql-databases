@@ -18,7 +18,7 @@ function configdir() {
         exit 100
     fi
 
-    LOCATION=$1
+    local LOCATION=$1
     mkdir -p ./var/data/$LOCATION/meta
     mkdir -p ./var/logs/$LOCATION/meta
 }
@@ -32,14 +32,14 @@ function startConfigServer() {
         exit 100
     fi
 
-    DATACENTRE=$1
-    PORT=$2
+    local DATACENTRE=$1
+    local PORT=$2
     ./var/common/startConfigNode.sh $DATACENTRE $PORT
 }
 
 function createConfigServers() {
-    DATACENTRES=$(getFilePath "dc")
-    SERVERCFGCOUNT=$(findLineAttribute "cfg")
+    local DATACENTRES=$(getFilePath "dc")
+    local SERVERCFGCOUNT=$(findLineAttribute "cfg")
 
     while read location; do
         configdir $location

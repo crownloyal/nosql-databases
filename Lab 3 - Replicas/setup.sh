@@ -24,8 +24,8 @@ function mgdir() {
         exit 100
     fi
 
-    DC=$1
-    COUNT=$2
+    local DC=$1
+    local COUNT=$2
 
     writeToLog "INFO: Creating folder: ./data/$DC/logs"
     mkdir -p ./data/$DC/logs
@@ -44,8 +44,8 @@ function mgnode() {
         exit 100
     fi
 
-    DC=$1
-    INSTANCEID=$2
+    local DC=$1
+    local INSTANCEID=$2
     ./var/common/startMongoNode.sh $DC $INSTANCEID $PORT
 }
 
@@ -58,8 +58,8 @@ function createMg() {
         exit 100
     fi
 
-    DC=$1
-    COUNT=$2
+    local DC=$1
+    local COUNT=$2
 
     mgdir $DC $COUNT
 
@@ -70,8 +70,8 @@ function createMg() {
 }
 
 function createReplicas() {
-    DATACENTRES=$(getFilePath "dc")
-    INSTANCESCOUNT=$(findLineAttribute "repl" "count")
+    local DATACENTRES=$(getFilePath "dc")
+    local INSTANCESCOUNT=$(findLineAttribute "repl" "count")
 
     while read location; do
         writeToLog "INFO: Setting up DC $location"
@@ -83,33 +83,33 @@ function createReplicas() {
 }
 
 function configureReplica() {
-    LOCATION=$1
-    HOST=$(findLineAttribute "host" "host")
-    NODES=$(getFilePath "map")
-    PRIMID=$(findId $LOCATION)
-    PRIMPORT=$(findPrimaryPort $LOCATION)
+    local LOCATION=$1
+    local HOST=$(findLineAttribute "host" "host")
+    local NODES=$(getFilePath "map")
+    local PRIMID=$(findId $LOCATION)
+    local PRIMPORT=$(findPrimaryPort $LOCATION)
 
-    CONFIGURATION="'"                                                       # leading quote
-    CONFIGURATION+='rs.initiate({ "_id": "'
+    local CONFIGURATION='rs.initiate({ _id: "'
     CONFIGURATION+=$LOCATION
-    CONFIGURATION+='", "members": ['
+    CONFIGURATION+='", members: ['
     while read details; do
         if [[ $details =~ "$LOCATION" ]]; then
             writeToLog "DEBUG: $details"
             DETAILID=$(echo $details | cut -d ":" -f 2)
             DETAILPORT=$(echo $details | cut -d ":" -f 3)
-            CONFIGURATION+='{ "_id": "'
-            CONFIGURATION+=rs$DETAILID
-            CONFIGURATION+='", "host": "'
+            CONFIGURATION+='{ _id: '
+            CONFIGURATION+=$DETAILID
+            CONFIGURATION+=', host: "'
             CONFIGURATION+=$HOST:$DETAILPORT
             CONFIGURATION+='" },'
         fi
     done < $NODES
-    CONFIGURATION+="]});rs.status();'"
+    CONFIGURATION+="]});"
     CONFIGURATION=$(echo $CONFIGURATION | sed s/},]/}]/g)                   # remove final comma
 
     writeToLog "INFO: Writing configuration to $PRIMPORT : $CONFIGURATION"
     mongo --port $PRIMPORT --eval $CONFIGURATION
+    mongo --port $PRIMPORT --eval "rs.isMaster()"
 }
 
 function clearRemnants() {
