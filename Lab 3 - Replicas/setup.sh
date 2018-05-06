@@ -89,19 +89,20 @@ function configureReplica() {
     PRIMID=$(findId $LOCATION)
     PRIMPORT=$(findPrimaryPort $LOCATION)
 
-    CONFIGURATION="'rs.initiate({ _id: "
+    CONFIGURATION="'"                                                       # leading quote
+    CONFIGURATION+='rs.initiate({ "_id": "'
     CONFIGURATION+=$LOCATION
-    CONFIGURATION+=", members: ["
+    CONFIGURATION+='", "members": ['
     while read details; do
         if [[ $details =~ "$LOCATION" ]]; then
             writeToLog "DEBUG: $details"
             DETAILID=$(echo $details | cut -d ":" -f 2)
             DETAILPORT=$(echo $details | cut -d ":" -f 3)
-            CONFIGURATION+="{ _id: "
+            CONFIGURATION+='{ "_id": "'
             CONFIGURATION+=rs$DETAILID
-            CONFIGURATION+=", host: "
+            CONFIGURATION+='", "host": "'
             CONFIGURATION+=$HOST:$DETAILPORT
-            CONFIGURATION+="},"
+            CONFIGURATION+='" },'
         fi
     done < $NODES
     CONFIGURATION+="]});rs.status();'"
