@@ -44,12 +44,9 @@ findLastPort() {
     fi
 }
 findValidLastPort() {
-    local LOGFILE=./var/logs/setup.log
     local PORT1=$(findLastPort)
     local PORT2=$(findLineAttribute "host" "port")
     local PORT=${PORT1:-$PORT2}
-    writeToLog $LOGFILE "DEBUG: PORT returned: $PORT"
-
     echo $PORT
 }
 

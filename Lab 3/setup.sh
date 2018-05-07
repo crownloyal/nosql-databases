@@ -25,11 +25,8 @@ function mgdir() {
     local COUNT=$2
     local LOGPATH=./data/$DC/logs
 
-    writeToLog $LOGFILE "INFO: Creating folder: ./data/$DC/logs"
-    mkdir -p $LOGPATH
     for ((i=0;i<$COUNT;i++)); do
-        writeToLog $LOGFILE "INFO: Creating folder: $LOGPATH/$i"
-        mkdir -p ./data/$DC/$i
+        setupLog $LOGPATH/$i.log
     done
 }
 
@@ -113,7 +110,7 @@ function configureReplica() {
     CONFIGURATION+="]});"
     CONFIGURATION=$(echo $CONFIGURATION | sed s/},]/}]/g)                   # remove final comma
 
-    writeToLog $LOGFILE "INFO: Writing configuration to $PRIMPORT : $CONFIGURATION"
+    writeToLog $LOGFILE "INFO: Writing configuration to $PRIMEPORT : $CONFIGURATION"
     mongo --port $PRIMEPORT --eval $CONFIGURATION
     mongo --port $PRIMEPORT --eval "rs.isMaster()"
 }

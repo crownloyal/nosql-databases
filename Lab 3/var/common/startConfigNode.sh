@@ -1,11 +1,17 @@
 #!/bin/bash
+# # # # # # #
+# INCLUDES  #
+# # # # # # #
+source ./var/common/log.sh
+
 DATACENTRE=$1
 PORT=$2
 
-LOG=./var/logs/$DATACENTRE/meta/$DATACENTRE.log
+LOGFILE=./var/logs/$DATACENTRE/meta/$PORT.log
 DATA=./raw/data.json
 NODEMAP=./var/config/node.map
 
-mongod --configsvr --replSet $DATACENTRE --port $PORT --dbpath $DATA --logpath $LOG
-#--fork
+setupLog $LOGFILE
+rm $LOGFILE    # removing the file because mongo will do this anyways
+mongod --configsvr --replSet "$DATACENTRE" --port "$PORT" --dbpath "$DATA" --logpath $LOGFILE --fork
 echo "META:$DATACENTRE:$PORT" >> $NODEMAP

@@ -1,9 +1,18 @@
 #!/bin/bash
+# # # # # # #
+# INCLUDES  #
+# # # # # # #
+source ./var/common/log.sh
+
 NODEMAP=./var/config/node.map
 DC=$1
 INSTANCEID=$2
 PORT=$3
-LOGPATH=./data/$DC/logs/rs$INSTANCEID.log
+LOGFILE=./data/$DC/logs/$INSTANCEID.log
+DATALOCATION=./data/$DC/$INSTANCEID
 
-mongod --replSet "$DC" --logpath $LOGPATH --dbpath "./data/$DC/rs$INSTANCEID" --port "$PORT" --shardsvr --smallfiles --fork
+setupLog $LOG
+rm $LOGFILE
+mkdir -p $DATALOCATION
+mongod --replSet "$DC" --logpath $LOGFILE --dbpath "$DATALOCATION" --port "$PORT" --shardsvr --smallfiles --fork
 echo "$DC:$INSTANCEID:$PORT" >> $NODEMAP
