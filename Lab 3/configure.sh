@@ -11,10 +11,12 @@ source ./var/common/math.sh
 # FUNCTIONS #
 # # # # # # #
 function configdir() {
+    local LOGFILE=./var/logs/setup.log
+
     if [ $# -ne 1 ]; then
-        writeToLog "ERR: Sequence aborted, missing params."
-        writeToLog "Function configdir() requires 1 param"
-        writeToLog "1: data centre"
+        writeToLog $LOGFILE "ERR: Sequence aborted, missing params."
+        writeToLog $LOGFILE "Function configdir() requires 1 param"
+        writeToLog $LOGFILE "1: data centre"
         exit 100
     fi
 
@@ -24,11 +26,13 @@ function configdir() {
 }
 
 function startConfigNode() {
+    local LOGFILE=./var/logs/setup.log
+
     if [ $# -ne 2 ]; then
-        writeToLog "ERR: Sequence aborted, missing params."
-        writeToLog "Function startConfigNode() requires 2 params"
-        writeToLog "1: data centre"
-        writeToLog "2: port"
+        writeToLog $LOGFILE "ERR: Sequence aborted, missing params."
+        writeToLog $LOGFILE "Function startConfigNode() requires 2 params"
+        writeToLog $LOGFILE "1: data centre"
+        writeToLog $LOGFILE "2: port"
         exit 100
     fi
 
@@ -38,29 +42,36 @@ function startConfigNode() {
 }
 
 function createConfigSet() {
+    local LOGFILE=./var/logs/setup.log
+
     if [ $# -ne 2 ]; then
-        writeToLog "ERR: Sequence aborted, missing params."
-        writeToLog "Function createReplicaSet() requires 2 params"
-        writeToLog "1: data centre"
-        writeToLog "2: instance count"
+        writeToLog $LOGFILE "ERR: Sequence aborted, missing params."
+        writeToLog $LOGFILE "Function createReplicaSet() requires 2 params"
+        writeToLog $LOGFILE "1: data centre"
+        writeToLog $LOGFILE "2: instance count"
         exit 100
     fi
 
     local DATACENTRE=$1
     local COUNT=$2
-    
+
+    local PORT1=$(countUp $(findLastPort) 5)
+    local PORT2=$(findLineAttribute "host" "port")
+    local PORT=${PORT1:-$PORT2}
+
     for ((i=0;i<$SERVERCFGCOUNT;i++)); do
-        local PORT=$(countUp $(findLastPort) 5)
+        PORT=$(countUp $PORT 5)
         startConfigNode $location $PORT
     done
 }
 
 function createConfigs() {
+    local LOGFILE=./var/logs/setup.log
     local DATACENTRES=$(getFilePath "dc")
     local SERVERCFGCOUNT=$(findLineAttribute "cfg" "count")
 
     while read location; do
-        writeToLog "INFO: Setting up config server for $location"
+        writeToLog $LOGFILE "INFO: Setting up config server for $location"
         configdir $location
         createConfigSet $location $SERVERCFGCOUNT
     done < $DATACENTRES

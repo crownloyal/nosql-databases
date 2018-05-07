@@ -11,11 +11,13 @@ source ./var/common/math.sh
 # FUNCTIONS #
 # # # # # # #
 function mgdir() {
+    local LOGFILE=./var/logs/setup.log
+
     if [ $# -ne 2 ]; then
-        writeToLog "ERR: Sequence aborted, missing params."
-        writeToLog "Function mgdir() requires 2 params"
-        writeToLog "1: data centre"
-        writeToLog "2: instance count"
+        writeToLog $LOGFILE "ERR: Sequence aborted, missing params."
+        writeToLog $LOGFILE "Function mgdir() requires 2 params"
+        writeToLog $LOGFILE "1: data centre"
+        writeToLog $LOGFILE "2: instance count"
         exit 100
     fi
 
@@ -23,20 +25,22 @@ function mgdir() {
     local COUNT=$2
     local LOGPATH=./data/$DC/logs
 
-    writeToLog "INFO: Creating folder: ./data/$DC/logs"
+    writeToLog $LOGFILE "INFO: Creating folder: ./data/$DC/logs"
     mkdir -p $LOGPATH
     for ((i=0;i<$COUNT;i++)); do
-        writeToLog "INFO: Creating folder: $LOGPATH/$i"
+        writeToLog $LOGFILE "INFO: Creating folder: $LOGPATH/$i"
         mkdir -p ./data/$DC/$i
     done
 }
 
 function createReplicaNode() {
+    local LOGFILE=./var/logs/setup.log
+
     if [ $# -ne 3 ]; then
-        writeToLog "ERR: Sequence aborted, missing params."
-        writeToLog "Function createReplicaNode() requires 2 params"
-        writeToLog "1: data centre"
-        writeToLog "2: instance id"
+        writeToLog $LOGFILE "ERR: Sequence aborted, missing params."
+        writeToLog $LOGFILE "Function createReplicaNode() requires 2 params"
+        writeToLog $LOGFILE "1: data centre"
+        writeToLog $LOGFILE "2: instance id"
         exit 100
     fi
 
@@ -47,40 +51,47 @@ function createReplicaNode() {
 }
 
 function createReplicaSet() {
+    local LOGFILE=./var/logs/setup.log
+
     if [ $# -ne 2 ]; then
-        writeToLog "ERR: Sequence aborted, missing params."
-        writeToLog "Function createReplicaSet() requires 2 params"
-        writeToLog "1: data centre"
-        writeToLog "2: instance count"
+        writeToLog $LOGFILE "ERR: Sequence aborted, missing params."
+        writeToLog $LOGFILE "Function createReplicaSet() requires 2 params"
+        writeToLog $LOGFILE "1: data centre"
+        writeToLog $LOGFILE "2: instance count"
         exit 100
     fi
 
     local DATACENTRE=$1
     local COUNT=$2
-    PORT=$(countUp $(findLastPort) 5)
+
+    local PORT1=$(countUp $(findLastPort) 5)
+    local PORT2=$(findLineAttribute "host" "port")
+    local PORT=${PORT1:-$PORT2}
 
     mgdir $DATACENTRE $COUNT
 
     for ((i=0;i<$COUNT;i++)); do
-        PORT=${(countUp $(findLastPort) 5):-$(findLineAttribute "host" "port")}      # some bash magic for default values
+        PORT=$(countUp $PORT 5)
         createReplicaNode $DATACENTRE $i $PORT
     done
 }
 
 function createReplicas() {
+    local LOGFILE=./var/logs/setup.log
     local DATACENTRES=$(getFilePath "dc")
     local INSTANCESCOUNT=$(findLineAttribute "repl" "count")
 
     while read location; do
-        writeToLog "INFO: Setting up DC $location"
+        writeToLog $LOGFILE "INFO: Setting up DC $location"
         createReplicaSet $location $INSTANCESCOUNT
 
-        writeToLog "INFO: Configuring DC $location"
+        writeToLog $LOGFILE "INFO: Configuring DC $location"
         configureReplica $location
     done < $DATACENTRES
 }
 
 function configureReplica() {
+    local LOGFILE=./var/logs/setup.log
     local LOCATION=$1
     local HOST=$(findLineAttribute "host" "host")
     local NODES=$(getFilePath "map")
@@ -91,7 +102,7 @@ function configureReplica() {
     CONFIGURATION+='", members: ['
     while read details; do
         if [[ $details =~ "$LOCATION" ]]; then
-            writeToLog "DEBUG: $details"
+            writeToLog $LOGFILE "DEBUG: $details"
             local DETAILID=$(echo $details | cut -d ":" -f 2)
             local DETAILPORT=$(echo $details | cut -d ":" -f 3)
             CONFIGURATION+='{ _id: '
@@ -104,7 +115,7 @@ function configureReplica() {
     CONFIGURATION+="]});"
     CONFIGURATION=$(echo $CONFIGURATION | sed s/},]/}]/g)                   # remove final comma
 
-    writeToLog "INFO: Writing configuration to $PRIMPORT : $CONFIGURATION"
+    writeToLog $LOGFILE "INFO: Writing configuration to $PRIMPORT : $CONFIGURATION"
     mongo --port $PRIMEPORT --eval $CONFIGURATION
     mongo --port $PRIMEPORT --eval "rs.isMaster()"
 }
