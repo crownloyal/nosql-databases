@@ -4,11 +4,19 @@
 # # # # # # #
 source ./var/common/log.sh
 
-writeToLog "INFO: Killing mongod and mongos"
-killall mongod
-killall mongos
+cleanUp() {
+    local LOG=./var/logs/setup.log
 
-writeToLog "INFO: Removing data files"
-rm -rf ./data/
-rm -rf ./var/logs
-> ./var/config/node.map
+    rm -rf ./var/logs
+    setupLog $LOG
+
+    writeToLog $LOG "INFO: Killing mongod and mongos"
+    killall mongod
+    killall mongos
+
+    writeToLog $LOG "INFO: Removing data files"
+    rm -rf ./data/
+    > ./var/config/node.map
+}
+
+cleanUp

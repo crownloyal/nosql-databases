@@ -10,7 +10,8 @@ source ./configure.sh
 # # # # # # # #
 
 # clean everything up
-clearRemnants && setupLog
+clearRemnants
+setupLog ./var/logs/setup.log
 wait
 
 # For mac make sure rlimits are high enough to open all necessary connections

@@ -8,10 +8,10 @@ findFirst() {
 }
 findLast() {
     if [ $# -lt 1 ]; then
-        echo $(findAll | cut -d ":" -f 3)
+        echo $(cat $NODEMAP | tail -1 )
     else
         local QUERY=$1
-        echo $(findAll $QUERY | tail -2 | head -1)
+        echo $(findAll $QUERY | tail -1)
     fi
 }
 findAll() {
@@ -20,7 +20,7 @@ findAll() {
     fi
 
     if [ $# -lt 1 ]; then
-        echo $(cat $NODEMAP)
+        echo $NODEMAP
     else
         local QUERY=$1
         echo $(grep -i $QUERY $NODEMAP)
@@ -42,6 +42,15 @@ findLastPort() {
         local QUERY=$1
         echo $(findLast $QUERY | cut -d ":" -f 3)
     fi
+}
+findValidLastPort() {
+    local LOGFILE=./var/logs/setup.log
+    local PORT1=$(findLastPort)
+    local PORT2=$(findLineAttribute "host" "port")
+    local PORT=${PORT1:-$PORT2}
+    writeToLog $LOGFILE "DEBUG: PORT returned: $PORT"
+
+    echo $PORT
 }
 
 findAllIds() {

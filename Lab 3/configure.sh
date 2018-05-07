@@ -55,12 +55,8 @@ function createConfigSet() {
     local DATACENTRE=$1
     local COUNT=$2
 
-    local PORT1=$(countUp $(findLastPort) 5)
-    local PORT2=$(findLineAttribute "host" "port")
-    local PORT=${PORT1:-$PORT2}
-
     for ((i=0;i<$SERVERCFGCOUNT;i++)); do
-        PORT=$(countUp $PORT 5)
+        PORT=$(countUp $(findValidLastPort) 5)
         startConfigNode $location $PORT
     done
 }

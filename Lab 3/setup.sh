@@ -41,6 +41,8 @@ function createReplicaNode() {
         writeToLog $LOGFILE "Function createReplicaNode() requires 2 params"
         writeToLog $LOGFILE "1: data centre"
         writeToLog $LOGFILE "2: instance id"
+        writeToLog $LOGFILE "3: port"
+        writeToLog $LOGFILE "Received: $*"
         exit 100
     fi
 
@@ -64,14 +66,10 @@ function createReplicaSet() {
     local DATACENTRE=$1
     local COUNT=$2
 
-    local PORT1=$(countUp $(findLastPort) 5)
-    local PORT2=$(findLineAttribute "host" "port")
-    local PORT=${PORT1:-$PORT2}
-
     mgdir $DATACENTRE $COUNT
 
     for ((i=0;i<$COUNT;i++)); do
-        PORT=$(countUp $PORT 5)
+        PORT=$(countUp $(findValidLastPort) 5)
         createReplicaNode $DATACENTRE $i $PORT
     done
 }
