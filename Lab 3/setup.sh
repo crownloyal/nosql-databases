@@ -80,6 +80,8 @@ function createReplicas() {
         writeToLog $LOGFILE "INFO: Setting up DC $location"
         createReplicaSet $location $INSTANCESCOUNT
 
+        sleep 5
+
         writeToLog $LOGFILE "INFO: Configuring DC $location"
         configureReplica $location
     done < $DATACENTRES
@@ -92,26 +94,26 @@ function configureReplica() {
     local NODES=$(getFilePath "map")
     local PRIMEPORT=$(findPrimaryPort $LOCATION)
 
-    local CONFIGURATION='rs.initiate({ _id: "'
+    local CONFIGURATION='"rs.initiate({ "_id": "'
     CONFIGURATION+=$LOCATION
-    CONFIGURATION+='", members: ['
+    CONFIGURATION+='", "members": ['
     while read details; do
         if [[ $details =~ "$LOCATION" ]]; then
             writeToLog $LOGFILE "DEBUG: $details"
             local DETAILID=$(echo $details | cut -d ":" -f 2)
             local DETAILPORT=$(echo $details | cut -d ":" -f 3)
-            CONFIGURATION+='{ _id: '
+            CONFIGURATION+='{ "_id": '
             CONFIGURATION+=$DETAILID
-            CONFIGURATION+=', host: "'
+            CONFIGURATION+=', "host": "'
             CONFIGURATION+=$HOST:$DETAILPORT
             CONFIGURATION+='" },'
         fi
     done < $NODES
-    CONFIGURATION+="]});"
+    CONFIGURATION+=']});rs.status();"'
     CONFIGURATION=$(echo $CONFIGURATION | sed s/},]/}]/g)                   # remove final comma
 
     writeToLog $LOGFILE "INFO: Writing configuration to $PRIMEPORT : $CONFIGURATION"
-    mongo --port $PRIMEPORT --eval $CONFIGURATION
+    mongo --port $PRIMEPORT --eval "$CONFIGURATION"
     mongo --port $PRIMEPORT --eval "rs.isMaster()"
 }
 
