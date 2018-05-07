@@ -17,7 +17,6 @@ wait
 # For mac make sure rlimits are high enough to open all necessary connections
 ulimit -n 2048
 
-# create shards
+# create shards & meta
 createReplicas
 createConfigs
-wait
