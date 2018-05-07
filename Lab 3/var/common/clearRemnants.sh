@@ -15,7 +15,7 @@ cleanUp() {
     killall mongos
 
     writeToLog $LOG "INFO: Removing data files"
-    rm -rf ./var/data/
+    rm -rf ./data/
     > ./var/config/node.map
 }
 

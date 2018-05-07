@@ -21,7 +21,7 @@ function configdir() {
     fi
 
     local LOCATION=$1
-    mkdir -p ./var/data/$LOCATION/meta
+    mkdir -p ./data/$LOCATION/meta
     mkdir -p ./var/logs/$LOCATION/meta
 }
 
