@@ -11,8 +11,9 @@ PORT=$3
 LOGFILE=./data/$DC/logs/$INSTANCEID.log
 DATALOCATION=./data/$DC/$INSTANCEID
 
-setupLog $LOG
+setupLog $LOGFILE
 rm $LOGFILE
 mkdir -p $DATALOCATION
-mongod --replSet "$DC" --logpath $LOGFILE --dbpath "$DATALOCATION" --port "$PORT" --shardsvr --smallfiles --fork
+
+mongod --replSet "$DC" --logpath $LOGFILE --dbpath "$DATALOCATION" --port "$PORT" --shardsvr --smallfiles #--fork
 echo "$DC:$INSTANCEID:$PORT" >> $NODEMAP

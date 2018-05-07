@@ -14,6 +14,13 @@ function writeToLog() {
 }
 
 function setupLog() {
+    local ERRLOG=./var/logs/setup.log
+
+    if [ $# -ne 1 ]; then
+        writeToLog $ERRLOG "ERR:Function setupLog() requires 1 param"
+        exit 500
+    fi
+
     local FILE=$1
     local SETUPLOG=./var/logs/setup.log
 
