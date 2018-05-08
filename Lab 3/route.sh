@@ -22,31 +22,33 @@ function routedir() {
 function startRouter() {
     local LOGFILE=./var/logs/setup.log
 
-    if [ $# -ne 2 ]; then
+    if [ $# -ne 1 ]; then
         writeToLog $LOGFILE "ERR: Sequence aborted, missing params."
         writeToLog $LOGFILE "Function startRouter() requires 2 params"
         writeToLog $LOGFILE "1: data centre"
-        writeToLog $LOGFILE "2: port"
         exit 100
     fi
 
     local DATACENTRE=$1
-    local PORT=$2
-    ./var/common/startRouterNode.sh $DATACENTRE $PORT
+    local ROUTESERVERCOUNT=$(findLineAttribute "rout" "count")
+    local PORTLIST=$(findAllPorts $DATACENTRE)
+
+    for ((i=0;i<$ROUTESERVERCOUNT;i++)); do
+        local PORT=$(countUp $(findValidLastPort) 5)
+        ./var/common/startRouterNode.sh $DATACENTRE $PORT $PORTS
+    done
 }
 
 
 createRoutes() {
     local LOGFILE=./var/logs/setup.log
     local DATACENTRES=$(getFilePath "dc")
-    local ROUTESERVERCOUNT=$(findLineAttribute "rout" "count")
 
     while read location; do
-        local PORTLIST=$(findAllPorts $DATACENTRE)
         writeToLog $LOGFILE "INFO: Setting up router server for $location"
 
         routedir $location
-        startRouter $location $ROUTESERVERCOUNT $PORTLIST
+        startRouter $location
     done < $DATACENTRES
 }
 
