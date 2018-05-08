@@ -42,9 +42,11 @@ createRoutes() {
     local ROUTESERVERCOUNT=$(findLineAttribute "rout" "count")
 
     while read location; do
-        writeToLog $LOGFILE "INFO: Setting up config server for $location"
+        local PORTLIST=$(findAllPorts $DATACENTRE)
+        writeToLog $LOGFILE "INFO: Setting up router server for $location"
+
         routedir $location
-        startRouter $location $ROUTESERVERCOUNT
+        startRouter $location $ROUTESERVERCOUNT $PORTLIST
     done < $DATACENTRES
 }
 
