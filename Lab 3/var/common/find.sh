@@ -11,6 +11,7 @@ CONFIGPATH=./var/config
 DCLIST=$CONFIGPATH/datacentres.cfg
 RPLCFG=$CONFIGPATH/replicas.cfg
 CFGCFG=$CONFIGPATH/configservers.cfg
+ROUTCFG=$CONFIGPATH/routeservers.cfg
 HOSTCFG=$CONFIGPATH/host.cfg
 NODEMAP=$CONFIGPATH/node.map
 
@@ -23,6 +24,8 @@ selectFile() {
         echo "$RPLCFG"
     elif [ "$SHORTCUT" = "cfg" ]; then
         echo "$CFGCFG"
+    elif [ "$SHORTCUT" = "rout" ]; then
+        echo "$ROUTCFG"
     elif [ "$SHORTCUT" = "host" ]; then
         echo "$HOSTCFG"
     elif [ "$SHORTCUT" = "map" ]; then

@@ -20,10 +20,10 @@ findAll() {
     fi
 
     if [ $# -lt 1 ]; then
-        echo $NODEMAP
+        echo (grep -vi meta $NODEMAP)
     else
         local QUERY=$1
-        echo $(grep -i $QUERY $NODEMAP)
+        echo $(grep -i $QUERY $NODEMAP | grep -iv meta)
     fi
 }
 
