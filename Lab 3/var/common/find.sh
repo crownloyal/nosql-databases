@@ -65,6 +65,6 @@ findLineAttribute() {
     local FILE=$(selectFile $1)
     local QUERY=$2
 
-    local RESULT=$(cat $FILE | grep -i $QUERY | sed 's/.*://')
+    local RESULT=$(grep -i $QUERY $FILE | sed 's/.*://')
     echo $RESULT
 }

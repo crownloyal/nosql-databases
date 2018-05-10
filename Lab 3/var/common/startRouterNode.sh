@@ -11,5 +11,5 @@ PORT=$2
 PORTLIST=$3
 LOG=./var/logs/$DATACENTRE/route/$PORT.log
 
-mongos --port "$PORT" --logpath "$LOG" --configdb "$DATACENTRE/$PORTLIST"
+mongos --port "$PORT" --logpath "$LOG" --configdb "$DATACENTRE/$PORTLIST" --fork
 echo "ROUT:$DATACENTRE:$PORT" >> $NODEMAP

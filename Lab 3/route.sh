@@ -19,6 +19,24 @@ function routedir() {
     mkdir -p ./var/logs/$LOCATION/route
 }
 
+routerPortList() {
+    local LOGFILE=./var/logs/setup.log
+    local DATACENTRE=$1
+
+    local HOSTLIST=$(findLineAttribute "host" "host")
+    local PORTLIST=$(findAllPorts $DATACENTRE)
+    local LIST=""
+
+    while read port; do
+        writeToLog LOGFILE "DEBUG: Current PORT :$port"
+        LIST+="$HOSTLIST:$port,"
+    done < "$PORTLIST"
+
+    writeToLog $LOGFILE "DEBUG: Routerlist - $LIST"
+
+    echo $LIST
+}
+
 function startRouter() {
     local LOGFILE=./var/logs/setup.log
 
@@ -31,7 +49,8 @@ function startRouter() {
 
     local DATACENTRE=$1
     local ROUTESERVERCOUNT=$(findLineAttribute "rout" "count")
-    local PORTLIST=$(findAllPorts $DATACENTRE)
+    local PORTLIST=$(routerPortList $DATACENTRE)
+
 
     for ((i=0;i<$ROUTESERVERCOUNT;i++)); do
         local PORT=$(countUp $(findValidLastPort) 5)

@@ -1,6 +1,7 @@
 #!/bin/bash
 
 NODEMAP=./var/config/node.map
+source ./var/common/log.sh
 
 findFirst() {
     local QUERY=$1
@@ -23,13 +24,16 @@ findAll() {
         echo $(grep -vi meta $NODEMAP)
     else
         local QUERY=$1
-        echo $(grep -i $QUERY $NODEMAP | grep -iv meta)
+        echo $(grep -i $QUERY $NODEMAP | grep -ivE \(meta\|rout\) )
     fi
 }
 
 findAllPorts() {
     local QUERY=$1
-    echo $(findAll $QUERY | sed 's/.*://')
+
+    while IFS= read node; do
+        echo "$node" | cut -d ":" -f 3
+    done < <(findAll "$QUERY" | tr " " "\n") # enforce new lines
 }
 findPrimaryPort() {
     local QUERY=$1
