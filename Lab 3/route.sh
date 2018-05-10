@@ -23,22 +23,22 @@ routerPortList() {
     local LOGFILE=./var/logs/setup.log
     local DATACENTRE=$1
 
-    local HOSTLIST=$(findLineAttribute "host" "host")
-    local PORTLIST=$(findAllPorts $DATACENTRE)
-    local LIST=""
+    local DATACENTRES=$(findAllMetaPorts $DATACENTRE)
+    local NODEHOST=$(findLineAttribute "host" "host")
+    local SHARD=""
 
-    while read port; do
-        writeToLog LOGFILE "DEBUG: Current PORT :$port"
-        LIST+="$HOSTLIST:$port,"
-    done < "$PORTLIST"
+    while read location; do
+        SHARD+="$NODEHOST:$(findPrimaryPort $location),"
+    done < "$DATACENTRES"
 
-    writeToLog $LOGFILE "DEBUG: Routerlist - $LIST"
+    LIST=$(echo $LIST | sed 's/,*$//g')
+    writeToLog $LOGFILE "DEBUG: Routerlist - $SHARD"
 
-    echo $LIST
+    echo $SHARD
 }
 
 function startRouter() {
-    local LOGFILE=./var/logs/setup.log
+    local $LOGFILE=./var/logs/setup.log
 
     if [ $# -ne 1 ]; then
         writeToLog $LOGFILE "ERR: Sequence aborted, missing params."
@@ -48,14 +48,11 @@ function startRouter() {
     fi
 
     local DATACENTRE=$1
-    local ROUTESERVERCOUNT=$(findLineAttribute "rout" "count")
+    local NODEHOST=$(findLineAttribute "host" "host")
     local PORTLIST=$(routerPortList $DATACENTRE)
 
-
-    for ((i=0;i<$ROUTESERVERCOUNT;i++)); do
-        local PORT=$(countUp $(findValidLastPort) 5)
-        ./var/common/startRouterNode.sh $DATACENTRE $PORT $PORTS
-    done
+    local PORT=$(countUp $(findValidLastPort) 5)
+    ./var/common/startRouterNode.sh $DATACENTRE $NODEHOST $PORT $PORTLIST
 }
 
 

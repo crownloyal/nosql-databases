@@ -27,6 +27,18 @@ findAll() {
         echo $(grep -i $QUERY $NODEMAP | grep -ivE \(meta\|rout\) )
     fi
 }
+findAllMeta() {
+    if [[ ! -f $NODEMAP ]] ; then
+        exit                # escape if there's nothing to see
+    fi
+
+    if [ $# -lt 1 ]; then
+        echo $(grep -i meta $NODEMAP)
+    else
+        local QUERY=$1
+        echo $(grep -i $QUERY $NODEMAP | grep -i meta )
+    fi
+}
 
 findAllPorts() {
     local QUERY=$1
@@ -35,6 +47,14 @@ findAllPorts() {
         echo "$node" | cut -d ":" -f 3
     done < <(findAll "$QUERY" | tr " " "\n") # enforce new lines
 }
+findAllMetaPorts() {
+    local QUERY=$1
+
+    while IFS= read node; do
+        echo "$node" | cut -d ":" -f 3
+    done < <(findAllMeta "$QUERY" | tr " " "\n") # enforce new lines
+}
+
 findPrimaryPort() {
     local QUERY=$1
     echo $(findFirst $QUERY | cut -d ":" -f 3)

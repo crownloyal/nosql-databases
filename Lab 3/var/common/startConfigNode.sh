@@ -14,5 +14,5 @@ NODEMAP=./var/config/node.map
 setupLog $LOGFILE
 rm $LOGFILE    # removing the file because mongo will do this anyways
 mkdir -p $DATAPATH
-mongod --configsvr --replSet "$DATACENTRE" --port "$PORT" --dbpath "$DATAPATH" --logpath $LOGFILE --fork
+mongod --configsvr --replSet "$DATACENTRE" --port "$PORT" --dbpath "$DATAPATH" --logpath "$LOGFILE" --fork
 echo "META:$DATACENTRE:$PORT" >> $NODEMAP

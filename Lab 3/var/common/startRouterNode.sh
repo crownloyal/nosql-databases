@@ -7,7 +7,8 @@ source ./var/common/log.sh
 NODEMAP=./var/config/node.map
 
 DATACENTRE=$1
-PORT=$2
+HOST=$2
+PORT=$3
 PORTLIST=$3
 LOG=./var/logs/$DATACENTRE/route/$PORT.log
 
