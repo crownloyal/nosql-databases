@@ -23,7 +23,7 @@ routerPortList() {
     local LOGFILE=./var/logs/setup.log
     local DATACENTRE=$1
 
-    local DATACENTRES=$(findAllMetaPorts $DATACENTRE)
+    local DATACENTRES=$(findAllPorts $DATACENTRE)
     local NODEHOST=$(findLineAttribute "host" "host")
     local SHARD=""
 
@@ -38,7 +38,7 @@ routerPortList() {
 }
 
 function startRouter() {
-    local $LOGFILE=./var/logs/setup.log
+    local LOGFILE=./var/logs/setup.log
 
     if [ $# -ne 1 ]; then
         writeToLog $LOGFILE "ERR: Sequence aborted, missing params."

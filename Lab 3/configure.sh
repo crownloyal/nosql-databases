@@ -56,24 +56,24 @@ function configureConfigSet() {
     local DATACENTRE=$1
     local HOST=$(findLineAttribute "host" "host")
     local PRIMEPORT=$(findPrimaryMetaPort $DATACENTRE)
-    local CONFIGNODES=$(findAllMeta $DATACENTRE)
 
         local CONFIGURATION='rs.initiate({ _id : "'
-        CONFIGURATION+=$LOCATION
+        CONFIGURATION+=$DATACENTRE
         CONFIGURATION+='", members : ['
         while read details; do
-            local DETAILID=$(echo $details | cut -d ":" -f 3)
-            local DETAILPORT=$(echo $details | cut -d ":" -f 4)
+            local DETAILID=$(echo $details | cut -d ":" -f 2)
+            local DETAILPORT=$(echo $details | cut -d ":" -f 3)
             CONFIGURATION+='{ _id : '
             CONFIGURATION+=$DETAILID
             CONFIGURATION+=', host : "'
             CONFIGURATION+=$HOST:$DETAILPORT
             CONFIGURATION+='" },'
-        done < <("$CONFIGNODES")
+        done < <(findAllMeta "$DATACENTRE" | tr " " "\n")
         CONFIGURATION+=']})'
         CONFIGURATION=$(echo $CONFIGURATION | sed s/},]/}]/g)                   # remove final comma
 
-    mongo --port $PORT --eval $CONFIGURATION
+    writeToLog $LOGFILE "INFO: writing configuration to :$PRIMEPORT - $CONFIGURATION"
+    mongo --port $PRIMEPORT --eval "$CONFIGURATION"
 }
 
 function createConfigSet() {
@@ -92,7 +92,7 @@ function createConfigSet() {
 
     for ((i=0;i<$SERVERCFGCOUNT;i++)); do
         PORT=$(countUp $(findValidLastPort) 5)
-        startConfigNode $location $PORT $i
+        startConfigNode $DATACENTRE $PORT $i
     done
 }
 

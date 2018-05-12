@@ -16,4 +16,4 @@ setupLog $LOGFILE
 rm $LOGFILE    # removing the file because mongo will do this anyways
 mkdir -p $DATAPATH
 mongod --configsvr --replSet "$DATACENTRE" --port "$PORT" --dbpath "$DATAPATH" --logpath "$LOGFILE" --fork
-echo "META:$DATACENTRE:$INSTANCEID:$PORT" >> $NODEMAP
+echo "$DATACENTRE:$INSTANCEID:$PORT:META" >> $NODEMAP
