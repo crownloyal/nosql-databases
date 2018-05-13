@@ -23,15 +23,14 @@ routerPortList() {
     local LOGFILE=./var/logs/setup.log
     local DATACENTRE=$1
 
-    local DATACENTRES=$(findAllPorts $DATACENTRE)
     local NODEHOST=$(findLineAttribute "host" "host")
     local SHARD=""
 
-    while read location; do
-        SHARD+="$NODEHOST:$(findPrimaryPort $location),"
-    done < "$DATACENTRES"
+    while read metaport; do
+        SHARD+="$NODEHOST:$metaport,"
+    done < <(findAllMetaPorts $DATACENTRE)
 
-    LIST=$(echo $LIST | sed 's/,*$//g')
+    SHARD=$(echo $SHARD | sed 's/,*$//g')
     writeToLog $LOGFILE "DEBUG: Routerlist - $SHARD"
 
     echo $SHARD
@@ -52,6 +51,7 @@ function startRouter() {
     local PORTLIST=$(routerPortList $DATACENTRE)
 
     local PORT=$(countUp $(findValidLastPort) 5)
+    writeToLog $LOGFILE "Starting router on :$PORT"
     ./var/common/startRouterNode.sh $DATACENTRE $NODEHOST $PORT $PORTLIST
 }
 
