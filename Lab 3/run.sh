@@ -5,6 +5,7 @@
 source ./setup.sh
 source ./configure.sh
 source ./route.sh
+source ./import.sh
 
 # # # # # # # #
 # R U N . SH  #
@@ -22,4 +23,4 @@ createReplicas
 createConfigs
 createRoutes
 
-#
+# import dataset

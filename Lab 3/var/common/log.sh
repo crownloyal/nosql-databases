@@ -24,7 +24,7 @@ function setupLog() {
     local FILE=$1
     local SETUPLOG=./var/logs/setup.log
 
-    writeToLog $SETUPLOG "INFO: Setting up logs - $FILE"
+    writeToLog $SETUPLOG "DEBUG: Setting up logs - $FILE"
     mkdir -p $(dirname $FILE)
     touch $FILE
 }

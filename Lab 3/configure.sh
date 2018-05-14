@@ -74,6 +74,7 @@ function configureConfigSet() {
 
     writeToLog $LOGFILE "INFO: writing configuration to :$PRIMEPORT - $CONFIGURATION"
     mongo --port $PRIMEPORT --eval "$CONFIGURATION"
+    mongo --port $PRIMEPORT --eval "rs.isMaster();"
 }
 
 function createConfigSet() {

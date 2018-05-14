@@ -9,8 +9,8 @@ NODEMAP=./var/config/node.map
 DATACENTRE=$1
 HOST=$2
 PORT=$3
-PORTLIST=$3
+PORTLIST=$4
 LOG=./var/logs/$DATACENTRE/route/$PORT.log
 
 mongos --port "$PORT" --logpath "$LOG" --configdb "$DATACENTRE/$PORTLIST" --fork
-echo "ROUT:$DATACENTRE:$PORT" >> $NODEMAP
+echo "$DATACENTRE:$DATACENTRE:$PORT:ROUTE" >> $NODEMAP
