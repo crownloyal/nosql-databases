@@ -19,7 +19,7 @@ function routedir() {
     mkdir -p ./var/logs/$LOCATION/route
 }
 
-routerPortList() {
+function routerPortList() {
     local LOGFILE=./var/logs/setup.log
     local DATACENTRE=$1
 
@@ -28,7 +28,7 @@ routerPortList() {
 
     while read metaport; do
         SHARD+="$NODEHOST:$metaport,"
-    done < <(findAllMetaPorts $DATACENTRE)
+    done < <(findAllMetaPorts)
 
     SHARD=$(echo $SHARD | sed 's/,*$//g')
     echo $SHARD
@@ -53,9 +53,8 @@ function startRouter() {
 
     writeToLog $LOGFILE "INFO: Starting router on :$PORT"
     writeToLog $LOGFILE "DEBUG: With configs $PORTLIST"
-    ./var/common/startRouterNode.sh $DATACENTRE $NODEHOST $PORT $PORTLIST
+    ./var/common/startRouterNode.sh $DATACENTRE $NODEHOST $PORTLIST $PORT
 }
-
 
 createRoutes() {
     local LOGFILE=./var/logs/setup.log
@@ -67,12 +66,14 @@ createRoutes() {
         routedir $location
         startRouter $location
     done < $DATACENTRES
+
+    writeToLog $LOGFILE "INFO: Deployed all data centre routers"
 }
 
 # now start the mongos on port 27018
 # rm mongos-1.log
 # sleep 5
-# mongos --port 59001 --logpath "./data/mongos-1.log" --configdb configServers/localhost:55001,localhost:55002,localhost:55003 
+# mongos --port 59001 --logpath "./data/mongos-1.log" --configdb configServers/localhost:55001,localhost:55002,localhost:55003
 # echo "Waiting 60 seconds for the replica sets to fully come online"
 # sleep 60
 # echo "Connnecting to mongos and enabling sharding"

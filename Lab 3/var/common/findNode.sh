@@ -45,18 +45,30 @@ findAllMeta() {
 }
 
 findAllPorts() {
-    local QUERY=$1
+    if [ $# -ne 1 ]; then
+        while IFS= read node; do
+            echo "$node" | cut -d ":" -f 3
+        done < <(findAll | tr " " "\n") # enforce new lines
+    else
+        local QUERY=$1
 
-    while IFS= read node; do
-        echo "$node" | cut -d ":" -f 3
-    done < <(findAll "$QUERY" | tr " " "\n") # enforce new lines
+        while IFS= read node; do
+            echo "$node" | cut -d ":" -f 3
+        done < <(findAll "$QUERY" | tr " " "\n") # enforce new lines
+    fi
 }
 findAllMetaPorts() {
-    local QUERY=$1
+    if [ $# -ne 1 ]; then
+        while IFS= read node; do
+            echo "$node" | cut -d ":" -f 3
+        done < <(findAllMeta | tr " " "\n") # enforce new lines
+    else
+        local QUERY=$1
 
-    while IFS= read node; do
-        echo "$node" | cut -d ":" -f 3
-    done < <(findAllMeta "$QUERY" | tr " " "\n") # enforce new lines
+        while IFS= read node; do
+            echo "$node" | cut -d ":" -f 3
+        done < <(findAllMeta "$QUERY" | tr " " "\n") # enforce new lines
+    fi
 }
 findPrimaryMetaPort() {
     local QUERY=$1
