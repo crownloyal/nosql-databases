@@ -37,7 +37,7 @@ function routerPortList() {
     fi
 
     SHARD=$(echo $SHARD | sed 's/,*$//g')
-    echo $SHARD
+    echo "$SHARD"
 }
 
 function startRouter() {
@@ -79,10 +79,32 @@ function assignShards() {
     while read datacentre; do
         local PRIMARY=$(findPrimaryPort $datacentre)
         local SHARD="$datacentre/$NODEHOST:$PRIMARY"
-        local COMMAND='sh.addShard("$SHARD");'
-        writeToLog $LOGFILE "DEBUG: adding shard $SHARD"
+        local COMMAND='sh.addShard("'
+        COMMAND+="$SHARD"
+        COMMAND+='");'
+        writeToLog $LOGFILE "DEBUG: adding shard $COMMAND"
         mongo --port "$PORT" --eval "$COMMAND"
     done < $DATACENTRES
+}
+
+function enableSharding() {
+    local LOGFILE=./var/logs/setup.log
+
+    if [ $# -ne 2 ]; then
+        writeToLog $LOGFILE "ERR: Sequence aborted, missing params."
+        writeToLog $LOGFILE "Function enableSharding() requires 1 params"
+        writeToLog $LOGFILE "1: port"
+        writeToLog $LOGFILE "2: database name"
+        exit 100
+    fi
+
+    local PORT=$1
+    local DATABASE=$2
+    local COMMAND='sh.enableSharding("'
+    COMMAND+="$DATABASE"
+    COMMAND+='"));'
+
+    mongo --port 27018 --eval $COMMAND
 }
 
 function shatter() {
@@ -91,6 +113,7 @@ function shatter() {
     while read router; do
         writeToLog $LOGFILE "INFO: Setting up router $router"
         assignShards $router
+        enableSharding $router data
     done < <(findAllRouterPorts)
 }
 
@@ -104,16 +127,8 @@ function createRoutes() {
         routedir $location
         startRouter $location
     done < $DATACENTRES
-
     writeToLog $LOGFILE "INFO: Deployed all data centre routers"
 
     shatter
+    writeToLog $LOGFILE "INFO: Assigned router"
 }
-
-
-# echo "Connnecting to mongos and enabling sharding"
-# # add shards and enable sharding on the test db
-# mongo --port 27018 --eval 'db.adminCommand( { addshard : "s0/"+"localhost:45001" } );db.adminCommand( { addshard : "s1/"+"localhost:46001" } );db.adminCommand( { addshard : "s2/"+"localhost:47001" } );db.adminCommand({enableSharding: "test"});'
-
-# sleep 5
-# echo "Done setting up sharded environment on localhost"

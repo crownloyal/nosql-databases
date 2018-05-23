@@ -14,6 +14,7 @@ CFGCFG=$CONFIGPATH/configservers.cfg
 ROUTCFG=$CONFIGPATH/routeservers.cfg
 HOSTCFG=$CONFIGPATH/host.cfg
 NODEMAP=$CONFIGPATH/node.map
+DATA=./raw/data.json
 
 selectFile() {
     SHORTCUT=$1
@@ -30,6 +31,8 @@ selectFile() {
         echo "$HOSTCFG"
     elif [ "$SHORTCUT" = "map" ]; then
         echo "$NODEMAP"
+    elif [ "$SHORTCUT" = "data" ]; then
+        echo "$DATA"
     elif [ "$#" -gt 1 ]; then
         echo "$*"
     else

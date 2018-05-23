@@ -24,3 +24,4 @@ createConfigs
 createRoutes
 
 # import dataset
+importData "data" "restaurants"
