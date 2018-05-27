@@ -22,6 +22,7 @@ ulimit -n 2048
 createReplicas
 createConfigs
 createRoutes
+shatterData
 
 # import dataset
 importData "data" "restaurants"

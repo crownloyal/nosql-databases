@@ -4,7 +4,7 @@
 # # # # # # #
 source ./var/common/log.sh
 
-DATACENTRE=$1
+REPLNAME=$1
 PORT=$2
 INSTANCEID=$3
 
@@ -15,5 +15,5 @@ NODEMAP=./var/config/node.map
 setupLog $LOGFILE
 rm $LOGFILE    # removing the file because mongo will do this anyways
 mkdir -p $DATAPATH
-mongod --configsvr --replSet "$DATACENTRE" --port "$PORT" --dbpath "$DATAPATH" --logpath "$LOGFILE" --fork
-echo "$DATACENTRE:$INSTANCEID:$PORT:META" >> $NODEMAP
+mongod --configsvr --replSet "$REPLNAME" --port "$PORT" --dbpath "$DATAPATH" --logpath "$LOGFILE" --fork
+echo "$REPLNAME:$INSTANCEID:$PORT:META" >> $NODEMAP

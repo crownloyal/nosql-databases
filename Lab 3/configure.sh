@@ -13,16 +13,9 @@ source ./var/common/math.sh
 function configdir() {
     local LOGFILE=./var/logs/setup.log
 
-    if [ $# -ne 1 ]; then
-        writeToLog $LOGFILE "ERR: Sequence aborted, missing params."
-        writeToLog $LOGFILE "Function configdir() requires 1 param"
-        writeToLog $LOGFILE "1: data centre"
-        exit 100
-    fi
-
     local LOCATION=$1
-    mkdir -p ./data/$LOCATION/meta
-    mkdir -p ./var/logs/$LOCATION/meta
+    mkdir -p ./data/meta
+    mkdir -p ./var/logs/meta
 }
 
 function startConfigNode() {
@@ -46,19 +39,11 @@ function startConfigNode() {
 function configureConfigSet() {
     local LOGFILE=./var/logs/setup.log
 
-    if [ $# -ne 1 ]; then
-        writeToLog $LOGFILE "ERR: Sequence aborted, missing params."
-        writeToLog $LOGFILE "Function configureConfigSet() requires 2 params"
-        writeToLog $LOGFILE "1: data centre"
-        exit 100
-    fi
-
-    local DATACENTRE=$1
     local HOST=$(findLineAttribute "host" "host")
-    local PRIMEPORT=$(findPrimaryMetaPort $DATACENTRE)
+    local PRIMEPORT=$(findPrimaryMetaPort)
 
-        local CONFIGURATION='rs.initiate({ _id : "'
-        CONFIGURATION+=$DATACENTRE
+    local CONFIGURATION='rs.initiate({ _id : "'
+        CONFIGURATION+="config"
         CONFIGURATION+='", members : ['
         while read details; do
             local DETAILID=$(echo $details | cut -d ":" -f 2)
@@ -68,7 +53,7 @@ function configureConfigSet() {
             CONFIGURATION+=', host : "'
             CONFIGURATION+=$HOST:$DETAILPORT
             CONFIGURATION+='" },'
-        done < <(findAllMeta "$DATACENTRE" | tr " " "\n")
+        done < <(findAllMeta | tr " " "\n")
         CONFIGURATION+=']})'
         CONFIGURATION=$(echo $CONFIGURATION | sed s/},]/}]/g)                   # remove final comma
 
@@ -80,34 +65,29 @@ function configureConfigSet() {
 function createConfigSet() {
     local LOGFILE=./var/logs/setup.log
 
-    if [ $# -ne 2 ]; then
+    if [ $# -ne 1 ]; then
         writeToLog $LOGFILE "ERR: Sequence aborted, missing params."
-        writeToLog $LOGFILE "Function createReplicaSet() requires 2 params"
-        writeToLog $LOGFILE "1: data centre"
-        writeToLog $LOGFILE "2: instance count"
+        writeToLog $LOGFILE "Function createConfigSet() requires 1 param"
+        writeToLog $LOGFILE "1: instance count"
         exit 100
     fi
 
-    local DATACENTRE=$1
-    local COUNT=$2
+    local COUNT=$1
 
     for ((i=0;i<$SERVERCFGCOUNT;i++)); do
         PORT=$(countUp $(findValidLastPort) 5)
-        startConfigNode $DATACENTRE $PORT $i
+        startConfigNode config $PORT $i
     done
 }
 
 function createConfigs() {
     local LOGFILE=./var/logs/setup.log
-    local DATACENTRES=$(getFilePath "dc")
     local SERVERCFGCOUNT=$(findLineAttribute "cfg" "count")
 
-    while read location; do
-        writeToLog $LOGFILE "INFO: Setting up config server for $location"
-        configdir $location
-        createConfigSet $location $SERVERCFGCOUNT
-        configureConfigSet $location
-    done < $DATACENTRES
+    writeToLog $LOGFILE "INFO: Setting up config servers"
+    configdir
+    createConfigSet $SERVERCFGCOUNT
+    configureConfigSet
 }
 
 

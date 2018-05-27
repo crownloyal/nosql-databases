@@ -20,6 +20,6 @@ importData() {
     PORT=$(findAllRouterPorts cork)
     RAWFILE=$(getFilePath data)
 
-    mongoimport --db "$DATABASENAME" --collection "$COLLECTIONNAME" --file "$RAWFILE" --port "$PORT"
+    mongoimport --db "$DATABASENAME" --collection "$COLLECTIONNAME" --file "$RAWFILE" --port "$PORT" -j 2
 }
 

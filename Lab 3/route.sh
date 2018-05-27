@@ -24,17 +24,9 @@ function routerPortList() {
     local NODEHOST=$(findLineAttribute "host" "host")
     local SHARD=""
 
-    if [ $# -eq 1 ]; then
-        local DATACENTRE=$1
-
-        while read metaport; do
-            SHARD+="$NODEHOST:$metaport,"
-        done < <(findMetaPorts $DATACENTRE)
-    else
-        while read metaport; do
-            SHARD+="$NODEHOST:$metaport,"
-        done < <(findAllMetaPorts)
-    fi
+    while read metaport; do
+        SHARD+="$NODEHOST:$metaport,"
+    done < <(findAllMetaPorts)
 
     SHARD=$(echo $SHARD | sed 's/,*$//g')
     echo "$SHARD"
@@ -53,7 +45,6 @@ function startRouter() {
     local DATACENTRE=$1
     local NODEHOST=$(findLineAttribute "host" "host")
 
-    local PRIMEMETANODE=$(findPrimaryMetaPort $DATACENTRE)
     local PORTLIST=$(routerPortList)
     local PORT=$(countUp $(findValidLastPort) 5)
 
@@ -102,28 +93,42 @@ function enableSharding() {
     local PORT=$1
     local DATABASE=$2
     local COLLECTION=$3
+    local DEFINEDKEY='{"cuisine": 1, "borough": 1}'
 
     local COMMAND='sh.enableSharding("'
     COMMAND+="$DATABASE"
-    COMMAND+='"));'
+    COMMAND+='");'
 
-    mongo --port 27018 --eval $COMMAND
+    writeToLog $LOGFILE "DEBUG: Sharding enabled for $DATABASE on :$PORT"
+    mongo --port "$PORT" --eval "$COMMAND"
 
-    local COMMAND2='sh.shardCollection("'
-    COMMAND2+="$DATABASE.$COLLECTION"
-    COMMAND2+='",  {"cuisine": 1, "borough": 1}'
-    COMMAND2+='));'
 
-    mongo --port 27018 --eval $COMMAND2
+    local COMMAND2="use config;"
+    COMMAND2+="db.settings.save({"
+    COMMAND2+='_id: "chunksize",'
+    COMMAND2+='"value": 1,'
+    COMMAND2+='});'
+
+    writeToLog $LOGFILE "DEBUG: Changing chunk size to 1MB"
+    mongo --port "$PORT" --eval "$COMMAND2"
+
+
+    local COMMAND3='sh.shardCollection("'
+    COMMAND3+="$DATABASE.$COLLECTION"
+    COMMAND3+='", '
+    COMMAND3+="$DEFINEDKEY"
+    COMMAND3+=');'
+
+    writeToLog $LOGFILE "DEBUG: Sharding keys defined for $DATABASE.$COLLECTION"
+    mongo --port "$PORT" --eval "$COMMAND3"
 }
 
-function shatter() {
+function createShards() {
     local LOGFILE=./var/logs/setup.log
 
     while read router; do
         writeToLog $LOGFILE "INFO: Setting up router $router"
         assignShards $router
-        enableSharding $router data restaurants
     done < <(findAllRouterPorts)
 }
 
@@ -139,6 +144,13 @@ function createRoutes() {
     done < $DATACENTRES
     writeToLog $LOGFILE "INFO: Deployed all data centre routers"
 
-    shatter
-    writeToLog $LOGFILE "INFO: Assigned router"
+    createShards
+}
+
+function shatterData() {
+    local LOGFILE=./var/logs/setup.log
+
+    while read router; do
+        enableSharding $router data restaurants
+    done < <(findAllRouterPorts | tr " " "\n")
 }
