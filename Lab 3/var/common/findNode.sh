@@ -8,11 +8,11 @@ function findFirst() {
     echo $(findAll $QUERY | cut -d " " -f 1)
 }
 function findLast() {
-    if [ $# -lt 1 ]; then
-        echo $(cat $NODEMAP | tail -1 )
-    else
+    if [ $# -eq 1 ]; then
         local QUERY=$1
         echo $(findAll $QUERY | tail -1)
+    else
+        echo $(cat $NODEMAP | tail -1 )
     fi
 }
 function findAll() {
@@ -21,10 +21,10 @@ function findAll() {
     fi
 
     if [ $# -lt 1 ]; then
-        echo $(grep -vi meta $NODEMAP)
+        echo $(grep -ivE \(meta\|rout\|arb\) $NODEMAP)
     else
         local QUERY=$1
-        echo $(grep -i $QUERY $NODEMAP | grep -ivE \(meta\|rout\) )
+        echo $(grep -i $QUERY $NODEMAP | grep -ivE \(meta\|rout\|arb\) )
     fi
 }
 function findFirstMeta() {
@@ -105,11 +105,11 @@ function findPrimaryPort() {
     echo $(findFirst $QUERY | cut -d ":" -f 3)
 }
 function findLastPort() {
-    if [ $# -lt 1 ]; then
-        echo $(findLast | cut -d ":" -f 3)
-    else
+    if [ $# -eq 1 ]; then
         local QUERY=$1
         echo $(findLast $QUERY | cut -d ":" -f 3)
+    else
+        echo $(findLast | cut -d ":" -f 3)
     fi
 }
 function findValidLastPort() {
@@ -126,4 +126,13 @@ function findAllIds() {
 function findId() {
     local QUERY=$1
     echo $(findFirst $QUERY | cut -d ":" -f 2)
+}
+
+function findArbiterPort() {
+    if [ $# -eq 1 ]; then
+        local QUERY=$1
+        echo $(grep $QUERY $NODEMAP | grep -i arb | cut -d ":" -f 3)
+    else
+        echo $(grep -i arb | cut -d ":" -f 3)
+    fi
 }

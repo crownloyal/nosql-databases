@@ -101,7 +101,6 @@ function configureReplica() {
     local LOGFILE=./var/logs/setup.log
     local LOCATION=$1
     local HOST=$(findLineAttribute "host" "host")
-    local NODES=$(getFilePath "map")
     local PRIMEPORT=$(findPrimaryPort $LOCATION)
 
     local CONFIGURATION='rs.initiate({ _id : "'
@@ -117,13 +116,21 @@ function configureReplica() {
             CONFIGURATION+=$HOST:$DETAILPORT
             CONFIGURATION+='" },'
         fi
-    done < $NODES
+    done < <(findAll $LOCATION | tr " " "\n")
     CONFIGURATION+=']})'
     CONFIGURATION=$(echo $CONFIGURATION | sed s/},]/}]/g)                   # remove final comma
 
     writeToLog $LOGFILE "INFO: Writing configuration to $PRIMEPORT : $CONFIGURATION"
     mongo --port $PRIMEPORT --eval "$CONFIGURATION"
     mongo --port $PRIMEPORT --eval "rs.isMaster();"
+
+    writeToLog $LOGFILE "INFO: Adding arbiter to the set"
+    local ARBITERPORT=$(findArbiterPort $LOCATION)
+    local ARBCOMMAND='rs.addArb("'
+    ARBCOMMAND+=$HOST:$ARBITERPORT
+    ARBCOMMAND+='");'
+    writeToLog $LOGFILE "DEBUG: $ARBCOMMAND"
+    mongo --port $PRIMEPORT --eval "$ARBCOMMAND"
 }
 
 function clearRemnants() {

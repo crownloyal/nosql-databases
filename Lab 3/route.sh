@@ -90,21 +90,31 @@ function assignShards() {
 function enableSharding() {
     local LOGFILE=./var/logs/setup.log
 
-    if [ $# -ne 2 ]; then
+    if [ $# -ne 3 ]; then
         writeToLog $LOGFILE "ERR: Sequence aborted, missing params."
-        writeToLog $LOGFILE "Function enableSharding() requires 1 params"
+        writeToLog $LOGFILE "Function enableSharding() requires 3 params"
         writeToLog $LOGFILE "1: port"
         writeToLog $LOGFILE "2: database name"
+        writeToLog $LOGFILE "2: collection name"
         exit 100
     fi
 
     local PORT=$1
     local DATABASE=$2
+    local COLLECTION=$3
+
     local COMMAND='sh.enableSharding("'
     COMMAND+="$DATABASE"
     COMMAND+='"));'
 
     mongo --port 27018 --eval $COMMAND
+
+    local COMMAND2='sh.shardCollection("'
+    COMMAND2+="$DATABASE.$COLLECTION"
+    COMMAND2+='",  {"cuisine": 1, "borough": 1}'
+    COMMAND2+='));'
+
+    mongo --port 27018 --eval $COMMAND2
 }
 
 function shatter() {
@@ -113,7 +123,7 @@ function shatter() {
     while read router; do
         writeToLog $LOGFILE "INFO: Setting up router $router"
         assignShards $router
-        enableSharding $router data
+        enableSharding $router data restaurants
     done < <(findAllRouterPorts)
 }
 
