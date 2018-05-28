@@ -86,7 +86,7 @@ function enableSharding() {
         writeToLog $LOGFILE "Function enableSharding() requires 3 params"
         writeToLog $LOGFILE "1: port"
         writeToLog $LOGFILE "2: database name"
-        writeToLog $LOGFILE "2: collection name"
+        writeToLog $LOGFILE "3: collection name"
         exit 100
     fi
 
@@ -103,24 +103,33 @@ function enableSharding() {
     mongo --port "$PORT" --eval "$COMMAND"
 
 
-    local COMMAND2="use config;"
-    COMMAND2+="db.settings.save({"
-    COMMAND2+='_id: "chunksize",'
-    COMMAND2+='"value": 1,'
-    COMMAND2+='});'
+    local COMMAND2+="db.restaurants.createIndex("
+    COMMAND2+="$DEFINEDKEY"
+    COMMAND2+=');'
 
     writeToLog $LOGFILE "DEBUG: Changing chunk size to 1MB"
+    writeToLog $LOGFILE "DEBUG: command $COMMAND2"
     mongo --port "$PORT" --eval "$COMMAND2"
 
 
-    local COMMAND3='sh.shardCollection("'
-    COMMAND3+="$DATABASE.$COLLECTION"
-    COMMAND3+='", '
-    COMMAND3+="$DEFINEDKEY"
-    COMMAND3+=');'
+    local COMMAND3+="db.settings.save({"
+    COMMAND3+='_id: "chunksize",'
+    COMMAND3+='value: 1'
+    COMMAND3+='});'
+
+    writeToLog $LOGFILE "DEBUG: Changing chunk size to 1MB"
+    writeToLog $LOGFILE "DEBUG: command $COMMAND3"
+    mongo --port "$PORT" --eval "$COMMAND3"
+
+
+    local COMMAND4='sh.shardCollection("'
+    COMMAND4+="$DATABASE.$COLLECTION"
+    COMMAND4+='", '
+    COMMAND4+="$DEFINEDKEY"
+    COMMAND4+=', false, {numInitialChunks: 7});'
 
     writeToLog $LOGFILE "DEBUG: Sharding keys defined for $DATABASE.$COLLECTION"
-    mongo --port "$PORT" --eval "$COMMAND3"
+    mongo --port "$PORT" --eval "$COMMAND4"
 }
 
 function createShards() {
