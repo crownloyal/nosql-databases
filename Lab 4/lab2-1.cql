@@ -12,7 +12,7 @@ create
 
 // Create some recipes
     (pancake:Cake {name: "Pancake"}),
-        (pancake)-[:CONTAINS {quantity: 25, unit: "grams"}]->(flour),
+        (pancake)-[:CONTAINS {quantity: 25, unit: "grams"}]->(selfraising),
         (pancake)-[:CONTAINS {quantity: 25, unit: "grams"}]->(butter),
         (pancake)-[:CONTAINS {quantity: 300, unit: "grams"}]->(milk),
         (pancake)-[:CONTAINS {quantity: 125, unit: "grams"}]->(sugar),
@@ -44,4 +44,4 @@ create
     (Alfons)-[:CREATES {popularity: 22, servedLastWeek: 1}]->(scones),
     (Tim)-[:CREATES {popularity: 30, servedLastWeek: 33}]->(brownscones),
     (Gordon)-[:CREATES {popularity: 68, servedLastWeek: 50}]->(applescones),
-    (Alfons)-[:CREATES {popularity: 60, servedLastWeek: 71}]->(bmousse),
+    (Alfons)-[:CREATES {popularity: 60, servedLastWeek: 71}]->(bmousse)
