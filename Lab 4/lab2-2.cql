@@ -21,7 +21,8 @@ RETURN c,food
 
 //Query 7:
 MATCH (c:Chef)-[cr:CREATES]->(food:Cake)
-RETURN c,sum(cr.servedLastWeek)
+RETURN c,sum(cr.servedLastWeek) AS serves
+ORDER BY serves DESC
 
 // Query 8:
 MATCH (food:Cake)-[c:CONTAINS]->(ing:Ingredient)
