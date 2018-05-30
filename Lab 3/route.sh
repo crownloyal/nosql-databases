@@ -93,7 +93,7 @@ function enableSharding() {
     local PORT=$1
     local DATABASE=$2
     local COLLECTION=$3
-    local DEFINEDKEY='{"cuisine": 1, "borough": 1}'
+    local DEFINEDKEY="{'cuisine': 'hashed'}"
 
     local COMMAND='sh.enableSharding("'
     COMMAND+="$DATABASE"
